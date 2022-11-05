@@ -1,33 +1,30 @@
 package core
 
 import "fmt"
-
-type Element interface{
-  render()string
-  UpDate()
-  childs(...Element)
-  State(s *State)Element
-  SetTag(string)
-  Tag()string
-  Children()[]Element
-  SetArgs(Args)
-  Args()Args
-  AddEventListener( string, func())
-  SetMotorRender(Motor)
+import "log"
+// init
+func init(){
+  log.SetFlags(log.Lshortfile)
 }
 
+// struct element
 type Ele struct{
-  motorRender Motor
   tag string
   args Args
+  subtype string
+  motorRender Motor
   children []Element
 }
 // contructor element
-func NewElement(tag string, args Args,childs ...Element)*Ele{
-  e := &Ele{ tag:tag,args:args}
+func NewElement(sub string,tag string, args Args,childs ...Element)*Ele{
+  e := &Ele{ subtype:sub,tag:tag,args:args}
   e.args.id = fmt.Sprintf("%p",e)// grabo la direccion de memoria como id
   if len(childs) > 0 { e.children = append(e.children,childs...) }
   return e
+}
+// getter subtype
+func (e *Ele) GetSubType()string{
+  return e.subtype
 }
 // setter children
 func (e *Ele) childs(eles ...Element){
@@ -68,9 +65,9 @@ func (e *Ele) Children()[]Element{
 }
 // update element render
 func (e *Ele) UpDate(){
-  fmt.Println("70:element buscar elemento con id =>",e.args.id)
-  fmt.Println("71:element // nuevo elemento renderizado //")
-  fmt.Println("72:element ",e.render(),"\n")
+  log.Println("buscar elemento con id =>",e.args.id)
+  log.Println("// nuevo elemento renderizado //")
+  log.Println(e.render(),"\n")
 }
 // setter motor render
 func (e *Ele) SetMotorRender(m Motor){

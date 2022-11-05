@@ -15,6 +15,7 @@ type Args struct{
   Alt string
   State *State
   Events Listener
+  Direction string
 }
 func (a Args) GetString()string{
   return fmt.Sprintf("%+v\n",a)
@@ -33,7 +34,7 @@ func (s Args) ToHtml()string{
     if s.State != nil {
       value= strings.ReplaceAll(value,"{{."+s.State.name+"}}",fmt.Sprint(s.State.value))
     }
-    if types == "string" && name != "id" && name != "value" && len(value) > 0{
+    if types == "string" && name != "direction" && name != "id" && name != "value" && len(value) > 0{
       res += fmt.Sprint(" ",name,"='",value,"'")
     }
   }

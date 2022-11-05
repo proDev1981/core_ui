@@ -11,6 +11,6 @@ func Label(args Args,childs ...Element)*label{
   }else{
     name = "label"
   }
-  l := &label{ NewElement(name,args,childs...) }
+  l := &label{ NewElement("label",name,args,childs...) }
   return l
 }

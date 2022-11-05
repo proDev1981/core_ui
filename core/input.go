@@ -5,5 +5,5 @@ type input struct{
 }
 
 func Input(args Args)*input{
-  return &input{ NewElement("input",args) }
+  return &input{ NewElement("input","input",args) }
 }

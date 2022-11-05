@@ -5,5 +5,5 @@ type img struct{
 }
 
 func Img(args Args)*img{
-  return &img{ NewElement("img",args) }
+  return &img{ NewElement("img","img",args) }
 }

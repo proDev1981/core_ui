@@ -5,5 +5,5 @@ type button struct{
 }
 
 func Button(args Args,childs ...Element)*button{
-  return &button{ NewElement("button",args,childs...) }
+  return &button{ NewElement("button","button",args,childs...) }
 }
