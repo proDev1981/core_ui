@@ -9,7 +9,7 @@ func Label(args Args,childs ...Element)*label{
   if args.Type != "" {
     name = args.Type
   }else{
-    name = "label"
+    name = "h1"
   }
   l := &label{ NewElement("label",name,args,childs...) }
   return l

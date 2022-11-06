@@ -1,9 +1,13 @@
 package ui
 
-import c "app/core"
+import ."app/core"
 
-func App()c.Element{
+func App(action *State)Element{
 
-  return c.Column(c.Args{ Name:"body" },Title(),List(),Controler())
+  return Column(Args{ Name:"body" },
+          Title(action),
+          List(),
+          Controler(),
+        )
 }
 

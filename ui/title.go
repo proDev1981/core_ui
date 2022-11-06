@@ -1,13 +1,12 @@
 package ui
 
-import c "app/core"
+import ."app/core"
 
-func Title()c.Element{
+func Title(action *State)Element{
 
-  types:= c.NewState("types","on")
 
-  return c.Row(c.Args{ Class:"container-title" },
-            c.Label(c.Args{ Class:"title",State:types,
-              Value:"algo que decir" }),
+  return Row(Args{ Class:"container-title" },
+            Label(Args{ Class:"title-{{.Class}}",State:action,
+              Value:"algo que decir {{.Str}} " }),
           )
 }

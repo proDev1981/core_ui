@@ -1,12 +1,22 @@
 package main
 
-import c "app/core"
+import ."app/core"
 import "app/ui"
-import "log"
+import ."log"
 
 func main(){
-  log.SetFlags(log.Lshortfile)
-  log.Println(c.HtmlRender(c.Page(ui.App())))
+
+  type dataTitle struct{
+    Class string
+    Str   string
+  }
+
+  action:= NewState(dataTitle{"on","Alberto"})
+
+  context:= HtmlRender(Page(ui.App(action)))
+  Print(context,"\n")
+
+  action.Set(dataTitle{"off","Paco"})
 }
 
 

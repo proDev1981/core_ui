@@ -1,13 +1,14 @@
 package ui
 
-import c "app/core"
+import ."app/core"
 
-func Controler()c.Element{
+func Controler()Element{
 
-  return c.Row(c.Args{Class:"controler"},
-            c.Button(c.Args{Class:"btn",Events:c.Listener{"click":ClickButton},
-                Value:"Press" }),
-            )
+  return Row(Args{Class:"controler"},
+          Button(Args{Class:"btn",
+            Events:Listener{ "click":ClickButton },
+            Value:"Press" }),
+          )
 }
 
 func ClickButton(){}
