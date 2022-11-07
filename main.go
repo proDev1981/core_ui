@@ -1,22 +1,15 @@
 package main
 
-import ."app/core"
+import . "app/core"
+import . "app/model"
 import "app/ui"
-import ."log"
+import . "log"
 
-func main(){
+func main() {
 
-  type dataTitle struct{
-    Class string
-    Str   string
-  }
+	var global = NewProvider()
 
-  action:= NewState(dataTitle{"on","Alberto"})
-
-  context:= HtmlRender(Page(ui.App(action)))
-  Print(context,"\n")
-
-  action.Set(dataTitle{"off","Paco"})
+	Println(HtmlRender(Page(ui.App(global))))
+	global.GetState("action").
+		Set(DataTitle{Class: "off", Str: "Paco"})
 }
-
-

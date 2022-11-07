@@ -1,14 +1,14 @@
 package ui
 
-import ."app/core"
+import . "app/core"
 
-func Controler()Element{
+func Controler() Element {
 
-  return Row(Args{Class:"controler"},
-          Button(Args{Class:"btn",
-            Events:Listener{ "click":ClickButton },
-            Value:"Press" }),
-          )
+	return Box(Args{Class: "controler"},
+		Button(Args{Class: "btn",
+			Events: Listener{"click": ClickButton},
+			Value:  "Press"}),
+	)
 }
 
-func ClickButton(){}
+func ClickButton() {}

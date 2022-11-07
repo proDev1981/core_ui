@@ -1,13 +1,15 @@
 package ui
 
-import ."app/core"
+import . "app/core"
 
-func App(action *State)Element{
+var global *Provider
 
-  return Column(Args{ Name:"body" },
-          Title(action),
-          List(),
-          Controler(),
-        )
+func App(gl *Provider) Element {
+	global = gl
+
+	return Box(Args{Name: "body"},
+		Title(),
+		List(),
+		Controler(),
+	)
 }
-

@@ -96,8 +96,8 @@ func isStruct(v any)bool{
 func isSlice(v any)bool{
   return fmt.Sprint(reflect.TypeOf(v).Kind()) == "slice"
 }
-// struct any to map
-func structToMap(v any)map[string]string{
+// convert struct[any] to map[key struct]value struct
+func entries(v any)map[string]string{
   res:= make(map[string]string)
   T:= reflect.TypeOf(v)
   V:= reflect.ValueOf(v)
@@ -111,16 +111,19 @@ func structToMap(v any)map[string]string{
 }
 // replace args.value for state.value
 func replaceState(e Args,change string)(value string){
+
   if len(change)>0 { value= change }else{ value= e.Value }
+
   if isStruct(e.State.Get()){
+    // if value state is struct[any]
     log.Println("<< is struct >>")
-    for key,val:= range structToMap(e.State.Get()){
+    for key,val:= range entries(e.State.Get()){
       value= strings.ReplaceAll(value,"{{."+key+"}}",val)
     }
-    
+    // if value state is []any 
   }else if isSlice(e.State.Get()){
     log.Println("<< is slice >>")
-
+    // if value struct is string|int|float 
   }else{
     log.Println("<< is other >>")
     value= strings.ReplaceAll(value,"{{.state}}",fmt.Sprint(e.State.value))
@@ -129,15 +132,17 @@ func replaceState(e Args,change string)(value string){
 }
 // args to html parse
 func argsToHTml(s Args)string{
+  var res string
   sType:= reflect.TypeOf(s) 
   sValue:= reflect.ValueOf(s)
   sLen:= sType.NumField()
-  var res string
 
   for i:= 0 ; i<sLen ; i++{
+
     value:= fmt.Sprint(sValue.Field(i))
     name:= strings.ToLower(sType.Field(i).Name)
     types:= fmt.Sprint(sType.Field(i).Type)
+
     if s.State != nil {
       if types == "string" && name != "direction" && name != "id" && name != "value" && len(value) > 0{
         value= replaceState(s,value)
