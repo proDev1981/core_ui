@@ -8,6 +8,9 @@ func Controler() Element {
 		Button(Args{Class: "btn",
 			Events: Listener{"click": ClickButton},
 			Value:  "Press"}),
+		Button(Args{Class: "btn",
+			Events: Listener{"click": ClickButton},
+			Value:  "Exit"}),
 	)
 }
 

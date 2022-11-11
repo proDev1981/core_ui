@@ -1,32 +1,40 @@
 package core
 
-type page struct{
-  children []Element
-  motorRender Motor
+type page struct {
+	children    []Element
+	motorRender Motor
 }
+
 // constructor struct page
-func Page(children ...Element)*page{
-  p:= &page{ children:children }
-  return p
+func Page(children ...Element) *page {
+	p := &page{children: children}
+	return p
 }
+
 // render page
-func (p *page) Render()(res string){
-  return p.motorRender.RenderPage(p)
+func (p *page) Render() (res string) {
+	return p.motorRender.RenderPage(p)
 }
+
 // getter children page
-func (p *page) Children()[]Element{
-  return p.children
+func (p *page) Children() []Element {
+	return p.children
 }
+
 // setter motor render
-func (p *page) SetMotorRender(m Motor){
-  p.motorRender= m
+func (p *page) SetMotorRender(m Motor) {
+	p.motorRender = m
+}
+
+// getter events listeners
+func (p *page) GetMotorRender() Motor {
+	return p.motorRender
 }
 
 // falta por implementar
-func Styles(path string)*Ele{
-  return &Ele{tag:"style"}
+func Styles(path string) *Ele {
+	return &Ele{tag: "style"}
 }
-func Header(children ...*Ele)*Ele{
-  return &Ele{tag:"header"}
+func Header(children ...*Ele) *Ele {
+	return &Ele{tag: "header"}
 }
-
