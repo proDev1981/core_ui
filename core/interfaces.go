@@ -7,8 +7,7 @@ type Motor interface {
 	RenderElement(Element) string
 	RenderPage(*page) string
 	AddEventListener(string, Listener)
-	GetEvents() []*Binder
-	NewServer()*http.Server
+	NewServer() *http.Server
 }
 
 // interface Element
@@ -23,7 +22,7 @@ type Element interface {
 	SetArgs(Args)
 	Args() Args
 	GetSubType() string
-	AddEventListener(string, func())
+	AddEventListener(string, func(*http.Event))
 	SetMotorRender(Motor)
 	MotorRender() Motor
 }

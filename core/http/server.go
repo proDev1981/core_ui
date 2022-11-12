@@ -6,46 +6,85 @@ import (
 	"net/http"
 )
 
+// struct server
 type Server struct {
-	port    string
-	root    string
-	routes  []string
-	contain string
-	static  string
-	socket  *Socket
+	port          string
+	root          string
+	routes        []string
+	contain       string
+	static        string
+	socket        *Socket
+	initialEvents map[string]Event
+	exit          bool
 }
 
-func NewServer() *Server {
-	return &Server{}
+// struct event
+type Event struct {
+	Type  string `json:"type"`
+	Call  func(*Event)
+	Id    string `json:"id"`
+	Value string `json:"value"`
 }
+
+// struct reciver sms to  client
+type reciverSms struct {
+	Type  string `json:"type"`
+	Name  string `json:"name"`
+	Event Event  `json:"event"`
+}
+
+// constructor server
+func NewServer() *Server {
+	return &Server{initialEvents: make(map[string]Event)}
+}
+
+// function init server default
 func InitDefaultServer() {
 	NewServer().Static("./src").Listen()
 }
+
+// setter field port
 func (s *Server) Port(port string) *Server {
 	s.port = port
 	return s
 }
+
+// setter field root server
 func (s *Server) Root(root string) *Server {
 	s.root = root
 	return s
 }
+
+// setter field contain html
 func (s *Server) Contain(contain string) *Server {
 	s.contain = contain
 	return s
 }
+
+// setter path folder static server
 func (s *Server) Static(static string) *Server {
 	s.static = static
 	return s
 }
-func (s *Server) Socket() *Server {
+
+// setter option constructor socket in server
+func (s *Server) AndSocket() *Server {
 	s.socket = NewSocket().Run()
 	return s
 }
+
+// getter socket in server
+func (s *Server) GetSocket() *Socket {
+	return s.socket
+}
+
+// setter path socket in server
 func (s *Server) SocketWitchPath(path string) *Server {
 	s.socket = NewSocket().Path(path).Run()
 	return s
 }
 
+// setter handles socket in server
 func (s *Server) AddHandles(calls ...func(*Socket, string)) *Server {
 	for _, item := range calls {
 		s.socket.AddHandle(item)
@@ -53,6 +92,28 @@ func (s *Server) AddHandles(calls ...func(*Socket, string)) *Server {
 	return s
 }
 
+// setter initial events of page html
+func (s *Server) SetInitialEvents(id string, types string, call func(*Event)) {
+	s.initialEvents[id] = Event{Type: types, Call: call}
+}
+
+// asset sender initial event page html to socket
+func (s *Server) sendInitialEvents() {
+	for na, ev := range s.initialEvents {
+		name := ev.Type + na
+		s.socket.initialEvents[na] = ev
+		s.socket.functions[name] = ev.Call
+	}
+}
+
+// await exit to ui
+func (s *Server) Await() {
+	s.sendInitialEvents()
+	for s.socket.sms != "exit" {
+	}
+}
+
+// configuration default server
 func (s *Server) Default() bool {
 	if s.port == "" {
 		s.port = ":3000"
@@ -68,6 +129,8 @@ func (s *Server) Default() bool {
 	}
 	return false
 }
+
+// run and listen server
 func (s *Server) Listen() {
 	if s.Default() {
 		http.HandleFunc(s.root, func(w http.ResponseWriter, r *http.Request) {
@@ -77,5 +140,6 @@ func (s *Server) Listen() {
 		http.Handle(s.root, http.FileServer(http.Dir(s.static)))
 	}
 	log.Println("Server listen in =>", s.port)
-	http.ListenAndServe(s.port, nil)
+	go http.ListenAndServe(s.port, nil)
+	s.Await()
 }

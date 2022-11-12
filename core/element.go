@@ -2,6 +2,7 @@ package core
 
 import "fmt"
 import "log"
+import "app/core/http"
 
 // init
 func init() {
@@ -44,7 +45,7 @@ func (e *Ele) State(s *State) Element {
 }
 
 // setter eventen listener
-func (e *Ele) AddEventListener(types string, call func()) {
+func (e *Ele) AddEventListener(types string, call func(*http.Event)) {
 	e.args.Events[types] = call
 }
 

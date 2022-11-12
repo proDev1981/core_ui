@@ -13,19 +13,15 @@ func init() {
 }
 
 type Html struct {
-	Binders []*Binder
-	server  *http.Server
-}
-
-type Binder struct {
-	parent   string
-	listener Listener
+	server *http.Server
 }
 
 // contructor
 func NewHtml() *Html {
 	return &Html{server: http.NewServer()}
 }
+
+// builder page html
 func HtmlBuild(p *page) Motor {
 	p.SetMotorRender(NewHtml())
 	if _, err := os.Stat("./src"); err != nil {
@@ -40,23 +36,22 @@ func HtmlBuild(p *page) Motor {
 		panic(err)
 	}
 	file.Write([]byte(p.Render()))
-	log.Println(p.motorRender.GetEvents())
 	return p.motorRender
 }
 
 // add listener in struct html
 func (h *Html) AddEventListener(parent string, listener Listener) {
-	h.Binders = append(h.Binders, &Binder{parent, listener})
+	for name, call := range listener {
+		if h.server.GetSocket() == nil {
+			h.server.SetInitialEvents(parent, name, call)
+		} else {
+		}
+	}
 }
 
 // getter server
 func (h *Html) NewServer() *http.Server {
 	return h.server
-}
-
-// getter evenets listeners
-func (h *Html) GetEvents() []*Binder {
-	return h.Binders
 }
 
 // render map element

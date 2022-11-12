@@ -1,3 +1,5 @@
 package core
 
-type Listener map[string]func()
+import "app/core/http"
+
+type Listener map[string]func(*http.Event)

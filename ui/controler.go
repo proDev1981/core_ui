@@ -1,6 +1,8 @@
 package ui
 
 import . "app/core"
+import . "app/core/http"
+import "log"
 
 func Controler() Element {
 
@@ -14,4 +16,6 @@ func Controler() Element {
 	)
 }
 
-func ClickButton() {}
+func ClickButton(e *Event) {
+	log.Println(e)
+}
