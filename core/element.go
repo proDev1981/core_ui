@@ -2,7 +2,6 @@ package core
 
 import "fmt"
 import "log"
-import "app/core/http"
 
 // init
 func init() {
@@ -45,8 +44,13 @@ func (e *Ele) State(s *State) Element {
 	return e
 }
 
+// getter state
+func (s *Ele) GetState() *State {
+	return s.args.State
+}
+
 // setter eventen listener
-func (e *Ele) AddEventListener(types string, call func(*http.Event)) {
+func (e *Ele) AddEventListener(types string, call func(*Event)) {
 	e.args.Events[types] = call
 }
 
@@ -92,9 +96,10 @@ func (e *Ele) setParent(parent Element) {
 
 // update element render
 func (e *Ele) UpDate() {
-	log.Println("buscar elemento con id =>", e.args.id)
+	log.Println("\n\nbuscar elemento con id =>", e.args.id)
 	log.Println("// nuevo elemento renderizado //")
-	log.Println(e.render())
+	log.Println("\n\n", e.render())
+	e.MotorRender().Update(e)
 }
 
 // setter motor render
@@ -105,4 +110,9 @@ func (e *Ele) SetMotorRender(m Motor) {
 // getter motor render
 func (e *Ele) MotorRender() Motor {
 	return e.motorRender
+}
+
+// search element by query
+func (e *Ele) Selector(query string) Element {
+	return e.MotorRender().Selector(query)
 }

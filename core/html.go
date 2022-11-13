@@ -5,9 +5,9 @@ import "strings"
 import "log"
 import "reflect"
 import "os"
-import "app/core/http"
+import "github.com/gorilla/websocket"
 
-var dom *page
+var dom Element
 
 // init
 func init() {
@@ -15,13 +15,14 @@ func init() {
 }
 
 type Html struct {
-	server *http.Server
-	dom    *page
+	server *Server
+	dom    Element
+	conn   *websocket.Conn
 }
 
 // contructor
 func NewHtml() *Html {
-	return &Html{server: http.NewServer()}
+	return &Html{server: NewServer()}
 }
 
 // builder page html
@@ -39,8 +40,6 @@ func HtmlBuild(p *page) Motor {
 		panic(err)
 	}
 	file.Write([]byte(p.Render()))
-	p.motorRender.(*Html).dom = p
-	dom = p
 	return p.motorRender
 }
 
@@ -54,14 +53,14 @@ func (h *Html) AddEventListener(parent string, listener Listener) {
 			h.server.SetInitialEvents(parent, types, call)
 		} else {
 			name := types + parent
-			h.server.GetSocket().SendAll(http.ComposeBind(name))
-			h.server.GetSocket().SendAll(http.ComposeEventListener(parent, types, name))
+			h.server.GetSocket().SendAll(ComposeBind(name))
+			h.server.GetSocket().SendAll(ComposeEventListener(parent, types, name))
 		}
 	}
 }
 
 // getter server
-func (h *Html) NewServer() *http.Server {
+func (h *Html) NewServer() *Server {
 	return h.server
 }
 
@@ -106,10 +105,6 @@ func (h *Html) RenderElement(e Element) (res string) {
 		e.Args().State.Add(e)
 		res = h.RenderMap(e)
 	} else {
-		//
-		log.Println(e.Tag())
-		log.Println(e.Children())
-		//
 		var value string
 		if e.Args().State != nil {
 			e.Args().State.Add(e)
@@ -140,29 +135,53 @@ func (h *Html) RenderPage(p *page) (res string) {
 	for _, item := range p.Children() {
 		item.SetMotorRender(p.motorRender)
 		if item.Tag() != "style" && item.Tag() != "header" {
+			if item.Args().Name == "root" {
+				dom = item
+				h.dom = item
+			}
 			body += item.render()
 		} else {
 			headers += item.render()
 		}
 	}
-	jsScript := "<script src='index.js'></script>"
-	res += fmt.Sprint(headers, "<body>", jsScript, body, "</body></html>")
+	res += fmt.Sprint(headers, "<body>", body, "</body></html>")
 	return res
 }
 
 // search element by query
 func (h *Html) Selector(query string) Element {
-	if h.dom != nil {
-		return search(query, h.dom.children[0])
-	}
-	return nil
+	return selector(query)
 }
-func Selector(query string) Element {
+func selector(query string) Element {
 	if dom != nil {
-		return search(query, dom.children[0])
+		return search(query, dom)
 	}
 	return nil
 
+}
+
+// setter conn
+func (h *Html) SetConn(conn *websocket.Conn) {
+	h.conn = conn
+}
+
+// getter conn
+func (h *Html) Conn() *websocket.Conn {
+	return h.conn
+}
+
+// update element in dom of client
+func (h *Html) Update(e Element) {
+	h.conn.WriteMessage(1, []byte(ComposeEval("document.getElementById('%s').outerHTML =`%s`",
+		e.Args().id, e.render()),
+	))
+}
+
+// get target
+func Target(e *Event) Element {
+	ele := selector("#" + e.Id)
+	ele.MotorRender().SetConn(e.Client)
+	return ele
 }
 
 // assets search

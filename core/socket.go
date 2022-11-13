@@ -1,4 +1,4 @@
-package http
+package core
 
 import (
 	"encoding/json"
@@ -116,9 +116,9 @@ func (so *Socket) searchFunctions(sms reciverSms) {
 func (so *Socket) ConvertSms(data []byte) reciverSms {
 	sms := reciverSms{}
 	if err := json.Unmarshal(data, &sms); err != nil {
-		log.Println(err)
+		log.Println("sms no valid error sytax")
 	} else {
-		log.Println(sms)
+		//log.Println(sms)
 	}
 	return sms
 }

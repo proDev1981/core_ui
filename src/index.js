@@ -38,15 +38,16 @@ function isBind( data ){
 function isEval( data ){
 
 	let res = eval( data.js );
-
-	if ( typeof res != "string" ){
-		res = JSON.stringify( res );
-	}
-	if ( data.id ){
-		res = JSON.stringify( {id : data.id , body: res} );
-	}
-	if ( res != undefined ){
-		ws.send( res );
+	if res.tagname == undefined{
+		if ( typeof res != "string" ){
+			res = JSON.stringify( res );
+		}
+		if ( data.id ){
+			res = JSON.stringify( {id : data.id , body: res} );
+		}
+		if ( res != undefined ){
+			ws.send( res );
+		}
 	}
 };
 

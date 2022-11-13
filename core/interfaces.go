@@ -1,13 +1,17 @@
 package core
 
-import "app/core/http"
+import "github.com/gorilla/websocket"
 
 // interface motor render
 type Motor interface {
 	RenderElement(Element) string
 	RenderPage(*page) string
 	AddEventListener(string, Listener)
-	NewServer() *http.Server
+	NewServer() *Server
+	SetConn(*websocket.Conn)
+	Conn() *websocket.Conn
+	Selector(string) Element
+	Update(Element)
 }
 
 // interface Element
@@ -19,12 +23,14 @@ type Element interface {
 	Parent() Element
 	setParent(Element)
 	State(s *State) Element
+	GetState() *State
 	SetTag(string)
 	Tag() string
 	SetArgs(Args)
 	Args() Args
 	GetSubType() string
-	AddEventListener(string, func(*http.Event))
+	AddEventListener(string, func(*Event))
 	SetMotorRender(Motor)
 	MotorRender() Motor
+	Selector(string) Element
 }

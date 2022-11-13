@@ -1,7 +1,5 @@
 package core
 
-import "fmt"
-
 type Args struct {
 	Class     string
 	Name      string
@@ -16,9 +14,4 @@ type Args struct {
 	Direction string
 	Rel       string
 	Href      string
-}
-
-func (a Args) GetString() string {
-	return fmt.Sprintf("%+v\n", a)
-	// sacar con reflexion la lista de argumentos con valor menos la id
 }

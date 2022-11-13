@@ -42,3 +42,6 @@ func Link(args Args) *Ele {
 func Header(children ...Element) *Ele {
 	return &Ele{tag: "header", children: children}
 }
+func Script(args Args) *Ele {
+	return &Ele{tag: "script", args: args}
+}

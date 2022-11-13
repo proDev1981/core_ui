@@ -1,8 +1,7 @@
 package ui
 
 import . "app/core"
-import . "app/core/http"
-import "log"
+import . "app/model"
 
 func Controler() Element {
 
@@ -17,5 +16,6 @@ func Controler() Element {
 }
 
 func ClickButton(e *Event) {
-	log.Println(Selector("#" + e.Id).Parent())
+	Target(e).Selector(".title").GetState().Set(Data{Str: "pedro"})
+	Target(e).Selector(".map").GetState().Set([]Person{{"julian", 20}, {"pedro", 18}})
 }

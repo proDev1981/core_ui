@@ -11,6 +11,7 @@ func main() {
 			Header(
 				Link(Args{Href: "./styles.css"}),
 			),
+			Script(Args{Src: "./index.js"}),
 			ui.App(global),
 		))
 	pwa.NewServer().AndSocket().Listen()

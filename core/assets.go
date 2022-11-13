@@ -1,6 +1,6 @@
-package http
+package core
 
-import . "fmt"
+import "fmt"
 
 // asset compose message type bind for send to client
 func ComposeBind(name string) string {
@@ -14,7 +14,7 @@ func ComposeEventListener(id, types, name string) string {
 
 // asset compose message type eval for send to client
 func ComposeEval(js string, args ...any) (res string) {
-	js = Sprintf(js, args...)
-	res = Sprintf(`{"type":"eval","js":"%s"}`, js)
+	js = fmt.Sprintf(js, args...)
+	res = fmt.Sprintf(`{"type":"eval","js":"%s"}`, js)
 	return
 }
