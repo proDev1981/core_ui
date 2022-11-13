@@ -16,6 +16,7 @@ type Ele struct {
 	subtype     string
 	motorRender Motor
 	children    []Element
+	parent      Element
 }
 
 // contructor element
@@ -77,6 +78,16 @@ func (e *Ele) Args() Args {
 // getter children
 func (e *Ele) Children() []Element {
 	return e.children
+}
+
+// getter parent field
+func (e *Ele) Parent() Element {
+	return e.parent
+}
+
+// setter parent field
+func (e *Ele) setParent(parent Element) {
+	e.parent = parent
 }
 
 // update element render

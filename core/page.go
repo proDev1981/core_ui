@@ -35,6 +35,10 @@ func (p *page) GetMotorRender() Motor {
 func Styles(path string) *Ele {
 	return &Ele{tag: "style"}
 }
-func Header(children ...*Ele) *Ele {
-	return &Ele{tag: "header"}
+func Link(args Args) *Ele {
+	args.Rel = "stylesheet"
+	return &Ele{tag: "link", args: args}
+}
+func Header(children ...Element) *Ele {
+	return &Ele{tag: "header", children: children}
 }

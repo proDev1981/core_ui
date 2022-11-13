@@ -17,5 +17,5 @@ func Controler() Element {
 }
 
 func ClickButton(e *Event) {
-	log.Println(e)
+	log.Println(Selector("#" + e.Id).Parent())
 }

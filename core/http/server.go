@@ -18,21 +18,6 @@ type Server struct {
 	exit          bool
 }
 
-// struct event
-type Event struct {
-	Type  string `json:"type"`
-	Call  func(*Event)
-	Id    string `json:"id"`
-	Value string `json:"value"`
-}
-
-// struct reciver sms to  client
-type reciverSms struct {
-	Type  string `json:"type"`
-	Name  string `json:"name"`
-	Event Event  `json:"event"`
-}
-
 // constructor server
 func NewServer() *Server {
 	return &Server{initialEvents: make(map[string]Event)}

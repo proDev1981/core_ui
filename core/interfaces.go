@@ -16,6 +16,8 @@ type Element interface {
 	UpDate()
 	childs(...Element)
 	Children() []Element
+	Parent() Element
+	setParent(Element)
 	State(s *State) Element
 	SetTag(string)
 	Tag() string

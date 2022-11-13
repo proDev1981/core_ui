@@ -7,6 +7,8 @@ import "reflect"
 import "os"
 import "app/core/http"
 
+var dom *page
+
 // init
 func init() {
 	log.SetFlags(log.Lshortfile)
@@ -14,6 +16,7 @@ func init() {
 
 type Html struct {
 	server *http.Server
+	dom    *page
 }
 
 // contructor
@@ -36,15 +39,23 @@ func HtmlBuild(p *page) Motor {
 		panic(err)
 	}
 	file.Write([]byte(p.Render()))
+	p.motorRender.(*Html).dom = p
+	dom = p
 	return p.motorRender
 }
 
 // add listener in struct html
+// @ params
+// parent is id of element html
+// listener is map[type evenet]function event
 func (h *Html) AddEventListener(parent string, listener Listener) {
-	for name, call := range listener {
+	for types, call := range listener {
 		if h.server.GetSocket() == nil {
-			h.server.SetInitialEvents(parent, name, call)
+			h.server.SetInitialEvents(parent, types, call)
 		} else {
+			name := types + parent
+			h.server.GetSocket().SendAll(http.ComposeBind(name))
+			h.server.GetSocket().SendAll(http.ComposeEventListener(parent, types, name))
 		}
 	}
 }
@@ -74,6 +85,7 @@ func (h *Html) RenderMap(e Element) string {
 				Dstruct := Dvalue.Index(i)
 				body += fmt.Sprint("<", e.Tag(), argsToHTml(e.Args()), ">")
 				for index, item := range e.Children() {
+					item.setParent(e)
 					value := fmt.Sprint(Dstruct.Field(index))
 					key := fmt.Sprint(Dstruct.Type().Field(index).Name)
 					body += fmt.Sprint("<", item.Tag(), argsToHTml(item.Args()), ">",
@@ -94,6 +106,10 @@ func (h *Html) RenderElement(e Element) (res string) {
 		e.Args().State.Add(e)
 		res = h.RenderMap(e)
 	} else {
+		//
+		log.Println(e.Tag())
+		log.Println(e.Children())
+		//
 		var value string
 		if e.Args().State != nil {
 			e.Args().State.Add(e)
@@ -103,6 +119,7 @@ func (h *Html) RenderElement(e Element) (res string) {
 		}
 		res = fmt.Sprint("<", e.Tag(), argsToHTml(e.Args()), ">", value)
 		for _, item := range e.Children() {
+			item.setParent(e)
 			item.SetMotorRender(h)
 			res += item.render()
 			if !eventsIsEmpty(item.Args().Events) {
@@ -128,8 +145,44 @@ func (h *Html) RenderPage(p *page) (res string) {
 			headers += item.render()
 		}
 	}
-	res += fmt.Sprint(headers, "<body>", "<script src='index.js'></script>", body, "</body></html>")
+	jsScript := "<script src='index.js'></script>"
+	res += fmt.Sprint(headers, "<body>", jsScript, body, "</body></html>")
 	return res
+}
+
+// search element by query
+func (h *Html) Selector(query string) Element {
+	if h.dom != nil {
+		return search(query, h.dom.children[0])
+	}
+	return nil
+}
+func Selector(query string) Element {
+	if dom != nil {
+		return search(query, dom.children[0])
+	}
+	return nil
+
+}
+
+// assets search
+func search(query string, parent Element) Element {
+	if query[0] == '#' {
+		if parent.Args().id == query[1:] {
+			return parent
+		}
+	}
+	if query[0] == '.' {
+		if parent.Args().Class == query[1:] {
+			return parent
+		}
+	}
+	for _, item := range parent.Children() {
+		if res := search(query, item); res != nil {
+			return res
+		}
+	}
+	return nil
 }
 
 // obtengo si la interface en un struct

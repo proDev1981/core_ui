@@ -97,24 +97,36 @@ func (so *Socket) initialActons(conn *websocket.Conn) {
 func (so *Socket) sendInitialEvents(idconn string, conn *websocket.Conn) {
 	for id, ev := range so.initialEvents {
 		name := ev.Type + id
-		registerFunctions := `{"type":"bind","name":"` + name + `"}`
-		registerEventsinElements := `{"type":"eval","js":"document.getElementById('` + id + `').addEventListener('` + ev.Type + `',` + name + `)"}`
+		registerFunctions := ComposeBind(name)
+		registerEventsinElements := ComposeEventListener(id, ev.Type, name)
 		so.Send(idconn, registerFunctions)
 		so.Send(idconn, registerEventsinElements)
 	}
 }
 
 // asset search match namo to functions in registre
-func (so *Socket) searchFunctions(sms []byte) {
-	data := reciverSms{}
-	if err := json.Unmarshal(sms, &data); err != nil {
+func (so *Socket) searchFunctions(sms reciverSms) {
+	if sms.Type == "event" {
+		log.Printf("llamando a %s\n", sms.Name)
+		so.functions[sms.Name](&sms.Event)
+	}
+}
+
+// convert json to struct
+func (so *Socket) ConvertSms(data []byte) reciverSms {
+	sms := reciverSms{}
+	if err := json.Unmarshal(data, &sms); err != nil {
 		log.Println(err)
 	} else {
-		if data.Type == "event" {
-			log.Printf("llamando a %s\n", data.Name)
-			so.functions[data.Name](&data.Event)
-		}
+		log.Println(sms)
 	}
+	return sms
+}
+
+// inyection conn cliente in sms reciver
+func (so *Socket) AddClient(sms reciverSms, client *websocket.Conn) reciverSms {
+	sms.Event.Client = client
+	return sms
 }
 
 // handle reciver socket
@@ -127,7 +139,7 @@ func (so *Socket) reciver(w http.ResponseWriter, r *http.Request) {
 		_, sms, _ := conn.ReadMessage()
 		so.sms = string(sms)
 		log.Printf("el cliente %p manda =>%s", conn, so.sms) // debugger print
-		so.searchFunctions(sms)
+		so.searchFunctions(so.AddClient(so.ConvertSms(sms), conn))
 		for _, caller := range so.clienteToServer {
 			caller(so, fmt.Sprintf("%p", conn))
 		}
