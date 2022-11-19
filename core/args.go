@@ -14,4 +14,5 @@ type Args struct {
 	Direction string
 	Rel       string
 	Href      string
+	Link      *string
 }

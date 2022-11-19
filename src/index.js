@@ -2,12 +2,12 @@ const ws = new WebSocket ("ws://localhost:3000/ws");
 
 ws.onopen = (e)=>{
 		console.log("conectado");
-		ws.send("ok");
+	ws.send(JSON.stringify({type:"conection"}));
 };
 
 window.addEventListener('beforeunload', (e)=>{
 	e.preventDefault();
-	ws.send("exit");
+	ws.send(JSON.stringify({type:"desconection"}));
 });
 
 ws.onmessage = (e)=>{

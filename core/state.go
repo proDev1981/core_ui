@@ -46,7 +46,6 @@ func (s *State) Set(value any) {
 
 // update and render subcriber element in state
 func (s *State) uploadElements() {
-	log.Println("len child=>", len(s.children))
 	for _, item := range s.children {
 		item.UpDate()
 	}

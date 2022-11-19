@@ -19,7 +19,6 @@ type Socket struct {
 	loaded          map[string]bool
 	sms             string
 	functions       map[string]func(*Event)
-	response        map[string]func(string)
 	promises        map[string]*PROMISE
 }
 
@@ -30,8 +29,8 @@ func NewSocket() *Socket {
 		loaded:        make(map[string]bool),
 		initialEvents: make(map[string]Event),
 		functions:     make(map[string]func(*Event)),
-		response:      make(map[string]func(string)),
 		promises:      make(map[string]*PROMISE),
+		conection:     true,
 	}
 }
 
@@ -116,7 +115,6 @@ func (so *Socket) sendInitialEvents(idconn string, conn *websocket.Conn) {
 // asset search match namo to functions in registre
 func (so *Socket) searchFunctions(sms reciverSms) {
 	if sms.Type == "event" {
-		log.Printf("llamando a %s\n", sms.Name)
 		go so.functions[sms.Name](&sms.Event)
 	}
 }
@@ -125,9 +123,6 @@ func (so *Socket) searchFunctions(sms reciverSms) {
 func (so *Socket) ConvertSms(data []byte) reciverSms {
 	sms := reciverSms{}
 	if err := json.Unmarshal(data, &sms); err != nil {
-		log.Println("sms no valid error sytax")
-	} else {
-		//log.Println(sms)
 	}
 	return sms
 }
@@ -141,19 +136,35 @@ func (so *Socket) AddClient(sms reciverSms, client *websocket.Conn) reciverSms {
 // manager promise in socket
 func (so *Socket) PromiseManager(sms reciverSms) {
 	if sms.Type == "response" {
-		log.Println("promise reciver")
 		if so.promises[sms.Name] != nil {
 			promise := so.promises[sms.Name]
 			promise.ChangeState("resolved")
 			promise.data = sms.Event.Value
 			promise.resolved(promise)
+			delete(so.promises, sms.Name)
 		}
+	}
+}
+
+// counter conn
+func (so *Socket) managerConn(sms reciverSms, active *bool) {
+	Len := len(so.clients) - 1
+	if sms.Type == "desconection" {
+		sms.Event.Client.Close()
+		delete(so.clients, fmt.Sprintf("%p", sms.Event.Client))
+		log.Println("conections=>", Len)
+		if Len == 0 {
+			so.conection = false
+		}
+		log.Println("cliente desconected =>", fmt.Sprintf("%p", sms.Event.Client))
+		*active = false
 	}
 }
 
 // handle reciver socket
 func (so *Socket) reciver(w http.ResponseWriter, r *http.Request) {
 	conn, _ := so.upgrader.Upgrade(w, r, nil)
+	active := true
 	so.initialActons(conn)
 	defer conn.Close()
 
@@ -161,11 +172,15 @@ func (so *Socket) reciver(w http.ResponseWriter, r *http.Request) {
 		_, sms, _ := conn.ReadMessage()
 		so.sms = string(sms)
 		dataSms := so.AddClient(so.ConvertSms(sms), conn)
-		log.Printf("el cliente %p manda =>%s", conn, so.sms) // debugger print
+		so.managerConn(dataSms, &active)
+		//	log.Printf("el cliente %p manda =>%s", conn, so.sms) // debugger print
 		so.searchFunctions(dataSms)
 		so.PromiseManager(dataSms)
 		for _, caller := range so.clienteToServer {
 			caller(so, fmt.Sprintf("%p", conn))
+		}
+		if !active {
+			return
 		}
 	}
 }

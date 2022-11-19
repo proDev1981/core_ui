@@ -11,7 +11,9 @@ type Motor interface {
 	GetServer() *Server
 	SetConn(*websocket.Conn)
 	Conn() *websocket.Conn
-	Selector(string) Element
+	RootSelector(string) Element
+	Selector(Element, string) Element
+	SelectorAll(Element, string) []Element
 	Update(Element)
 	// js binding
 	NewObject(Element, string, any) *PROMISE
@@ -19,6 +21,7 @@ type Motor interface {
 	SetAttribute(Element, string, string) *PROMISE
 	Log(Element, string)
 	Alert(Element, string)
+	GetData(Element) map[string]string
 }
 
 // interface Element
@@ -39,11 +42,14 @@ type Element interface {
 	AddEventListener(string, func(*Event))
 	SetMotorRender(Motor)
 	MotorRender() Motor
+	RootSelector(string) Element
 	Selector(string) Element
+	SelectorAll(string) []Element
 	// js binding
 	NewObject(string, any) *PROMISE
 	GetAttribute(string) *PROMISE
 	SetAttribute(string, string) *PROMISE
 	Log(string)
 	Alert(string)
+	GetData() map[string]string
 }

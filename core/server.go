@@ -94,7 +94,7 @@ func (s *Server) sendInitialEvents() {
 // await exit to ui
 func (s *Server) Await() {
 	s.sendInitialEvents()
-	for s.socket.sms != "exit" {
+	for s.socket.conection {
 	}
 }
 

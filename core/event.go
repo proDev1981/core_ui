@@ -13,7 +13,7 @@ type Event struct {
 
 // get element and inyect comunication client
 func (e *Event) Target() Element {
-	ele := selector("#" + e.Id)
+	ele := selector(dom, "#"+e.Id)
 	ele.MotorRender().SetConn(e.Client)
 	return ele
 }

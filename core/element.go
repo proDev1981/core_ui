@@ -110,8 +110,18 @@ func (e *Ele) MotorRender() Motor {
 }
 
 // search element by query
+func (e *Ele) RootSelector(query string) Element {
+	return e.MotorRender().RootSelector(query)
+}
+
+// search element by query
 func (e *Ele) Selector(query string) Element {
-	return e.MotorRender().Selector(query)
+	return e.MotorRender().Selector(e, query)
+}
+
+// search element by query
+func (e *Ele) SelectorAll(query string) []Element {
+	return e.MotorRender().SelectorAll(e, query)
 }
 
 // create new object in js client
@@ -137,4 +147,9 @@ func (e *Ele) Log(value string) {
 // alert in js client
 func (e *Ele) Alert(value string) {
 	e.MotorRender().Alert(e, value)
+}
+
+// return data childs input in element
+func (e *Ele) GetData() map[string]string {
+	return e.MotorRender().GetData(e)
 }

@@ -127,6 +127,13 @@ func (h *Html) RenderElement(e Element) (res string) {
 			if !eventsIsEmpty(item.Args().Events) {
 				h.AddEventListener(item.Args().id, item.Args().Events)
 			}
+			if item.Args().Link != nil {
+				event := Listener{"change": func(e *Event) {
+					// reparar link no se graba en bien
+					//*item.Args().Link = <-e.Target().GetAttribute("value").Await()
+				}}
+				h.AddEventListener(item.Args().id, event)
+			}
 		}
 		res += fmt.Sprint("</", e.Tag(), ">")
 	}
@@ -156,16 +163,35 @@ func (h *Html) RenderPage(p *page) (res string) {
 }
 
 // search element by query
-func (h *Html) Selector(query string) Element {
-	return selector(query)
+func (h *Html) RootSelector(query string) Element {
+	return selector(dom, query)
 }
 
 // search element by query
-func selector(query string) Element {
-	if dom != nil {
-		return search(query, dom)
+func (h *Html) Selector(e Element, query string) Element {
+	return selector(e, query)
+}
+
+// search element by query
+func (h *Html) SelectorAll(e Element, query string) []Element {
+	return selectorAll(e, query)
+}
+
+// search element by query
+func selector(e Element, query string) Element {
+	if e != nil {
+		return search(query, e)
 	}
 	return nil
+
+}
+
+// search element by query
+func selectorAll(e Element, query string) (res []Element) {
+	if e != nil {
+		res = append(res, searchAll(query, e)...)
+	}
+	return
 
 }
 
@@ -213,11 +239,19 @@ func (h *Html) SetAttribute(e Element, name, value string) *PROMISE {
 // geter attribute of element in dom html
 func (h *Html) GetAttribute(e Element, name string) *PROMISE {
 	p := NewPromise(h)
-	getAttribute := ComposeEvalAnsResponse(p.id,
-		`document.getElementById('%s').getAttribute('%s')`,
-		e.Args().id,
-		name,
-	)
+	var getAttribute string
+	if name == "value" {
+		getAttribute = ComposeEvalAnsResponse(p.id,
+			`document.getElementById('%s').value`,
+			e.Args().id,
+		)
+	} else {
+		getAttribute = ComposeEvalAnsResponse(p.id,
+			`document.getElementById('%s').getAttribute('%s')`,
+			e.Args().id,
+			name,
+		)
+	}
 	h.Conn().WriteMessage(1, []byte(getAttribute))
 	return p
 }
@@ -236,102 +270,20 @@ func (h *Html) Alert(e Element, value string) {
 
 // get target
 func Target(e *Event) Element {
-	ele := selector("#" + e.Id)
+	ele := selector(dom, "#"+e.Id)
 	ele.MotorRender().SetConn(e.Client)
 	return ele
 }
 
-// assets search
-func search(query string, parent Element) Element {
-	if query[0] == '#' {
-		if parent.Args().id == query[1:] {
-			return parent
+// return map string string values input in element
+func (h *Html) GetData(e Element) map[string]string {
+
+	children := e.SelectorAll("input")
+	patter := make(map[string]string)
+	if len(children) > 0 {
+		for _, item := range children {
+			patter[item.Args().Class] = <-item.GetAttribute("value").Await()
 		}
 	}
-	if query[0] == '.' {
-		if parent.Args().Class == query[1:] {
-			return parent
-		}
-	}
-	for _, item := range parent.Children() {
-		if res := search(query, item); res != nil {
-			return res
-		}
-	}
-	return nil
-}
-
-// obtengo si la interface en un struct
-func isStruct(v any) bool {
-	return fmt.Sprint(reflect.TypeOf(v).Kind()) == "struct"
-}
-
-// obtengo si la interface es un slice
-func isSlice(v any) bool {
-	return fmt.Sprint(reflect.TypeOf(v).Kind()) == "slice"
-}
-
-// convert struct[any] to map[key struct]value struct
-func entries(v any) map[string]string {
-	res := make(map[string]string)
-	T := reflect.TypeOf(v)
-	V := reflect.ValueOf(v)
-	Len := T.NumField()
-	for i := 0; i < Len; i++ {
-		key := T.Field(i).Name
-		value := V.Field(i).String()
-		res[key] = value
-	}
-	return res
-}
-
-// replace args.value for state.value
-func replaceState(e Args, change string) (value string) {
-
-	if len(change) > 0 {
-		value = change
-	} else {
-		value = e.Value
-	}
-
-	if isStruct(e.State.Get()) {
-		// if value state is struct[any]
-		for key, val := range entries(e.State.Get()) {
-			value = strings.ReplaceAll(value, "{{."+key+"}}", val)
-		}
-		// if value state is []any
-	} else if isSlice(e.State.Get()) {
-		// if value struct is string|int|float
-	} else {
-		value = strings.ReplaceAll(value, "{{.state}}", fmt.Sprint(e.State.value))
-	}
-	return
-}
-
-// args to html parse
-func argsToHTml(s Args) string {
-	var res string
-	sType := reflect.TypeOf(s)
-	sValue := reflect.ValueOf(s)
-	sLen := sType.NumField()
-
-	for i := 0; i < sLen; i++ {
-
-		value := fmt.Sprint(sValue.Field(i))
-		name := strings.ToLower(sType.Field(i).Name)
-		types := fmt.Sprint(sType.Field(i).Type)
-
-		if types == "string" && name != "direction" && name != "value" && len(value) > 0 {
-			if s.State != nil {
-				value = replaceState(s, value)
-			}
-			res += fmt.Sprint(" ", name, "='", value, "'")
-		}
-	}
-	return res
-}
-
-// assets
-func eventsIsEmpty(e Listener) bool {
-	return len(e) <= 0
+	return patter
 }
