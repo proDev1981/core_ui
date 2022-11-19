@@ -96,9 +96,6 @@ func (e *Ele) setParent(parent Element) {
 
 // update element render
 func (e *Ele) UpDate() {
-	log.Println("\n\nbuscar elemento con id =>", e.args.id)
-	log.Println("// nuevo elemento renderizado //")
-	log.Println("\n\n", e.render())
 	e.MotorRender().Update(e)
 }
 
@@ -115,4 +112,29 @@ func (e *Ele) MotorRender() Motor {
 // search element by query
 func (e *Ele) Selector(query string) Element {
 	return e.MotorRender().Selector(query)
+}
+
+// create new object in js client
+func (e *Ele) NewObject(name string, value any) *PROMISE {
+	return e.MotorRender().NewObject(e, name, value)
+}
+
+// get attribute of element in dom html
+func (e *Ele) GetAttribute(value string) *PROMISE {
+	return e.MotorRender().GetAttribute(e, value)
+}
+
+// set attribute of element in dom html
+func (e *Ele) SetAttribute(name string, value string) *PROMISE {
+	return e.MotorRender().SetAttribute(e, name, value)
+}
+
+// log in js console
+func (e *Ele) Log(value string) {
+	e.MotorRender().Log(e, value)
+}
+
+// alert in js client
+func (e *Ele) Alert(value string) {
+	e.MotorRender().Alert(e, value)
 }

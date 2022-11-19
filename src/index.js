@@ -38,7 +38,6 @@ function isBind( data ){
 function isEval( data ){
 
 	let res = eval( data.js );
-	if res.tagname == undefined{
 		if ( typeof res != "string" ){
 			res = JSON.stringify( res );
 		}
@@ -46,9 +45,8 @@ function isEval( data ){
 			res = JSON.stringify( {id : data.id , body: res} );
 		}
 		if ( res != undefined ){
-			ws.send( res );
+			ws.send( JSON.stringify({type:"response",name:data.name,event:{value:res}}) );
 		}
-	}
 };
 
 

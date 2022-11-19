@@ -8,10 +8,17 @@ type Motor interface {
 	RenderPage(*page) string
 	AddEventListener(string, Listener)
 	NewServer() *Server
+	GetServer() *Server
 	SetConn(*websocket.Conn)
 	Conn() *websocket.Conn
 	Selector(string) Element
 	Update(Element)
+	// js binding
+	NewObject(Element, string, any) *PROMISE
+	GetAttribute(Element, string) *PROMISE
+	SetAttribute(Element, string, string) *PROMISE
+	Log(Element, string)
+	Alert(Element, string)
 }
 
 // interface Element
@@ -33,4 +40,10 @@ type Element interface {
 	SetMotorRender(Motor)
 	MotorRender() Motor
 	Selector(string) Element
+	// js binding
+	NewObject(string, any) *PROMISE
+	GetAttribute(string) *PROMISE
+	SetAttribute(string, string) *PROMISE
+	Log(string)
+	Alert(string)
 }

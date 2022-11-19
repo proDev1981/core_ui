@@ -5,6 +5,8 @@ import "strings"
 import "log"
 import "reflect"
 import "os"
+import "assets"
+import "encoding/json"
 import "github.com/gorilla/websocket"
 
 var dom Element
@@ -61,6 +63,11 @@ func (h *Html) AddEventListener(parent string, listener Listener) {
 
 // getter server
 func (h *Html) NewServer() *Server {
+	return h.server
+}
+
+// getter server
+func (h *Html) GetServer() *Server {
 	return h.server
 }
 
@@ -152,6 +159,8 @@ func (h *Html) RenderPage(p *page) (res string) {
 func (h *Html) Selector(query string) Element {
 	return selector(query)
 }
+
+// search element by query
 func selector(query string) Element {
 	if dom != nil {
 		return search(query, dom)
@@ -175,6 +184,54 @@ func (h *Html) Update(e Element) {
 	h.conn.WriteMessage(1, []byte(ComposeEval("document.getElementById('%s').outerHTML =`%s`",
 		e.Args().id, e.render()),
 	))
+}
+
+// create new objetc in js
+func (h *Html) NewObject(e Element, name string, value any) *PROMISE {
+	p := NewPromise(h)
+	val := strings.ReplaceAll(string(assets.Try(json.Marshal(value))), `"`, "'")
+	createObject := ComposeEval(`window.%s = new Object`, name)
+	fillObject := ComposeEvalAnsResponse(p.id, `%s=%s`, name, val)
+	h.Conn().WriteMessage(1, []byte(createObject))
+	h.Conn().WriteMessage(1, []byte(fillObject))
+	return p
+}
+
+// set attribute of element in dom html
+func (h *Html) SetAttribute(e Element, name, value string) *PROMISE {
+	p := NewPromise(h)
+	setAttribute := ComposeEval(
+		`document.getElementById('%s').setAttribute('%s','%s')`,
+		e.Args().id,
+		name,
+		value,
+	)
+	h.Conn().WriteMessage(1, []byte(setAttribute))
+	return p
+}
+
+// geter attribute of element in dom html
+func (h *Html) GetAttribute(e Element, name string) *PROMISE {
+	p := NewPromise(h)
+	getAttribute := ComposeEvalAnsResponse(p.id,
+		`document.getElementById('%s').getAttribute('%s')`,
+		e.Args().id,
+		name,
+	)
+	h.Conn().WriteMessage(1, []byte(getAttribute))
+	return p
+}
+
+// log string in js console
+func (h *Html) Log(e Element, value string) {
+	log := ComposeEval(`console.log('%s')`, value)
+	h.Conn().WriteMessage(1, []byte(log))
+}
+
+// alert in js client
+func (h *Html) Alert(e Element, value string) {
+	alert := ComposeEval(`alert('%s')`, value)
+	h.Conn().WriteMessage(1, []byte(alert))
 }
 
 // get target

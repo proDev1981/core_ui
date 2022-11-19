@@ -2,6 +2,7 @@ package ui
 
 import . "app/core"
 import . "app/model"
+import "log"
 
 func Controler() Element {
 
@@ -16,6 +17,13 @@ func Controler() Element {
 }
 
 func ClickButton(e *Event) {
-	Target(e).Selector(".title").GetState().Set(Data{Str: "pedro"})
-	Target(e).Selector(".map").GetState().Set([]Person{{"julian", 20}, {"pedro", 18}})
+	this := e.Target()
+	person := this.Selector(".map").GetState()
+	person.Set([]Person{{Name: "julian", Age: 20}, {Name: "pedro", Age: 18}})
+
+	classBtn := <-this.GetAttribute("class").Await()
+	if classBtn == "btn" {
+		log.Println("press a button")
+		this.Alert("apretaste un button")
+	}
 }

@@ -11,9 +11,9 @@ type Event struct {
 	Client *websocket.Conn
 }
 
-// struct reciver sms to  client
-type reciverSms struct {
-	Type  string `json:"type"`
-	Name  string `json:"name"`
-	Event Event  `json:"event"`
+// get element and inyect comunication client
+func (e *Event) Target() Element {
+	ele := selector("#" + e.Id)
+	ele.MotorRender().SetConn(e.Client)
+	return ele
 }

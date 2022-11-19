@@ -4,7 +4,6 @@ import . "app/core"
 import "app/ui"
 
 func main() {
-	var global = NewProvider()
 
 	pwa := HtmlBuild(
 		Page(
@@ -12,7 +11,7 @@ func main() {
 				Link(Args{Href: "./styles.css"}),
 			),
 			Script(Args{Src: "./index.js"}),
-			ui.App(global),
+			ui.App(),
 		))
 	pwa.NewServer().AndSocket().Listen()
 }

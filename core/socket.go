@@ -19,6 +19,8 @@ type Socket struct {
 	loaded          map[string]bool
 	sms             string
 	functions       map[string]func(*Event)
+	response        map[string]func(string)
+	promises        map[string]*PROMISE
 }
 
 // constructor socket
@@ -28,6 +30,8 @@ func NewSocket() *Socket {
 		loaded:        make(map[string]bool),
 		initialEvents: make(map[string]Event),
 		functions:     make(map[string]func(*Event)),
+		response:      make(map[string]func(string)),
+		promises:      make(map[string]*PROMISE),
 	}
 }
 
@@ -54,6 +58,11 @@ func (so *Socket) AddHandle(check func(*Socket, string)) {
 // add handles in socket
 func (so *Socket) GetHandles() []func(*Socket, string) {
 	return so.clienteToServer
+}
+
+// add handle response
+func (so *Socket) AddPromise(promise *PROMISE) {
+	so.promises[promise.id] = promise
 }
 
 // getter sms recived
@@ -108,7 +117,7 @@ func (so *Socket) sendInitialEvents(idconn string, conn *websocket.Conn) {
 func (so *Socket) searchFunctions(sms reciverSms) {
 	if sms.Type == "event" {
 		log.Printf("llamando a %s\n", sms.Name)
-		so.functions[sms.Name](&sms.Event)
+		go so.functions[sms.Name](&sms.Event)
 	}
 }
 
@@ -129,6 +138,19 @@ func (so *Socket) AddClient(sms reciverSms, client *websocket.Conn) reciverSms {
 	return sms
 }
 
+// manager promise in socket
+func (so *Socket) PromiseManager(sms reciverSms) {
+	if sms.Type == "response" {
+		log.Println("promise reciver")
+		if so.promises[sms.Name] != nil {
+			promise := so.promises[sms.Name]
+			promise.ChangeState("resolved")
+			promise.data = sms.Event.Value
+			promise.resolved(promise)
+		}
+	}
+}
+
 // handle reciver socket
 func (so *Socket) reciver(w http.ResponseWriter, r *http.Request) {
 	conn, _ := so.upgrader.Upgrade(w, r, nil)
@@ -138,8 +160,10 @@ func (so *Socket) reciver(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, sms, _ := conn.ReadMessage()
 		so.sms = string(sms)
+		dataSms := so.AddClient(so.ConvertSms(sms), conn)
 		log.Printf("el cliente %p manda =>%s", conn, so.sms) // debugger print
-		so.searchFunctions(so.AddClient(so.ConvertSms(sms), conn))
+		so.searchFunctions(dataSms)
+		so.PromiseManager(dataSms)
 		for _, caller := range so.clienteToServer {
 			caller(so, fmt.Sprintf("%p", conn))
 		}

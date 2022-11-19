@@ -18,3 +18,15 @@ func ComposeEval(js string, args ...any) (res string) {
 	res = fmt.Sprintf(`{"type":"eval","js":"%s"}`, js)
 	return
 }
+
+// asset compose message type eval for send to client witch response
+func ComposeEvalAnsResponse(name string, js string, args ...any) (res string) {
+	js = fmt.Sprintf(js, args...)
+	res = fmt.Sprintf(`{"type":"eval","name":"`+name+`","js":"%s"}`, js)
+	return
+}
+
+// asset goruitne action
+func Await(f func()) {
+	go f()
+}

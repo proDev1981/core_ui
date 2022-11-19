@@ -5,8 +5,7 @@ import . "app/model"
 
 func Title() Element {
 
-	action := NewState(Data{Str: "Alberto"}).
-		Provider("action", global)
+	action := NewState(Data{Str: "Alberto"})
 
 	return Box(Args{Class: "container-title"},
 		Label(Args{Class: "title", State: action,
