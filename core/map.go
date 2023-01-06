@@ -1,11 +1,9 @@
 package core
 
-type mapper struct {
-	Element
-}
-
-func List(args Args, children ...Element) *mapper {
-	m := &mapper{NewElement("list", "div", args)}
-	m.childs(children...)
-	return m
+func Map[T any](data []T, fn func(index int, item T) Element) Element {
+	var childs []Element
+	for index, item := range data {
+		childs = append(childs, fn(index, item))
+	}
+	return Box(Args{}, childs...)
 }

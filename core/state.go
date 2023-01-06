@@ -31,6 +31,7 @@ func (s *State) Get() any {
 // setter value in state
 func (s *State) Set(value any) {
 	//if fmt.Sprint(s.value) != fmt.Sprint(value) {
+	log.Println(value)
 	s.value = value
 	s.uploadElements()
 }

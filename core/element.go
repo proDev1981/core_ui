@@ -51,17 +51,18 @@ func (e *Ele) AddEventListener(types string, call func(*Event)) {
 
 // render element
 func (e *Ele) render() string {
-	return DebugAndRes(
-		fmt.Sprint(
-			"\n",
-			"render duration in :",
-			"\n-tag=>", e.tag,
-			"\n-class=>", e.Args().Class,
-			"\n-id=>", e.Args().id,
-			"\n",
-		),
-		func() string { return e.motorRender.RenderElement(e) },
-	)
+	// return DebugAndRes(
+	// 	fmt.Sprint(
+	// 		"\n",
+	// 		"render duration in :",
+	// 		"\n-tag=>", e.tag,
+	// 		"\n-class=>", e.Args().Class,
+	// 		"\n-id=>", e.Args().id,
+	// 		"\n",
+	// 	),
+	// 	func() string { return e.motorRender.RenderElement(e) },
+	// )
+	return e.motorRender.RenderElement(e)
 }
 
 // setter tag

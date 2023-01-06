@@ -77,47 +77,81 @@ func (h *Html) GetServer() *Server {
 	return h.server
 }
 
-// render map element
+// render nuevo
 func (h *Html) RenderMap(e Element) string {
+	header := fmt.Sprint("<", e.Tag(), argsToHTml(e.Args()), ">")
 	var body string
-	var header string
-	var footer string
-
-	header += fmt.Sprint("<", e.Tag(), argsToHTml(e.Args()), ">")
-	footer += fmt.Sprint("</", e.Tag(), ">")
-
 	if e.Args().State != nil {
-		types := fmt.Sprintf("%T", e.Args().State)
-		if types == "*core.State" {
-			data := e.Args().State.Get()
-			Dvalue := reflect.ValueOf(data)
-			lenArrayData := Dvalue.Len()
-			if lenArrayData > e.Args().Max {
-				lenArrayData = e.Args().Max
-			}
-			for i := 0; i < lenArrayData; i++ {
-				Dstruct := Dvalue.Index(i)
-				argsContainer := e.Args()
-				argsContainer.Class = e.Args().Class + "-item"
-				body += fmt.Sprint("<", e.Tag(), argsToHTml(argsContainer), ">")
+		// get data with reflect
+		r_data := reflect.ValueOf(e.Args().State.Get())
+		len_data := r_data.Len()
+		if len_data > e.Args().Max && e.Args().Max > 0 {
+			len_data = e.Args().Max
+		}
+		if len_data > 0 {
+			for i := 0; i < len_data; i++ {
+				Struct := r_data.Index(i)
 				for _, item := range e.Children() {
 					item.setParent(e)
-					lenFieldsInStruct := Dstruct.NumField()
-					innerHtml := item.Args().Value
-					for i := 0; i < lenFieldsInStruct; i++ {
-						value := fmt.Sprint(Dstruct.Field(i))
-						key := fmt.Sprint(Dstruct.Type().Field(i).Name)
-						innerHtml = strings.ReplaceAll(innerHtml, "{{."+key+"}}", value)
+					item.SetMotorRender(h)
+					inner := item.render()
+					for index := 0; index < Struct.NumField(); index++ {
+						name := "{{." + Struct.Type().Field(index).Name + "}}"
+						value := Struct.Field(index)
+						inner = strings.ReplaceAll(inner, name, fmt.Sprint(value))
 					}
-					body += fmt.Sprint("<", item.Tag(), argsToHTml(item.Args()), ">", innerHtml, "</", item.Tag(), ">")
+					body += inner
 				}
-				body += fmt.Sprint("</", e.Tag(), ">")
 			}
-
 		}
+
 	}
-	return fmt.Sprint(header, body, footer)
+
+	foother := fmt.Sprint("</", e.Tag(), ">")
+	return header + body + foother
 }
+
+// render map element
+// func (h *Html) RenderMap(e Element) string {
+// 	var body string
+// 	var header string
+// 	var footer string
+//
+// 	header += fmt.Sprint("<", e.Tag(), argsToHTml(e.Args()), ">")
+// 	footer += fmt.Sprint("</", e.Tag(), ">")
+//
+// 	if e.Args().State != nil {
+// 		types := fmt.Sprintf("%T", e.Args().State)
+// 		if types == "*core.State" {
+// 			data := e.Args().State.Get()
+// 			Dvalue := reflect.ValueOf(data)
+// 			lenArrayData := Dvalue.Len()
+// 			if lenArrayData > e.Args().Max && e.Args().Max > 0 {
+// 				lenArrayData = e.Args().Max
+// 			}
+// 			for i := 0; i < lenArrayData; i++ {
+// 				Dstruct := Dvalue.Index(i)
+// 				argsContainer := e.Args()
+// 				argsContainer.Class = e.Args().Class + "-item"
+// 				body += fmt.Sprint("<", e.Tag(), argsToHTml(argsContainer), ">")
+// 				for _, item := range e.Children() {
+// 					item.setParent(e)
+// 					lenFieldsInStruct := Dstruct.NumField()
+// 					innerHtml := item.Args().Value
+// 					for i := 0; i < lenFieldsInStruct; i++ {
+// 						value := fmt.Sprint(Dstruct.Field(i))
+// 						key := fmt.Sprint(Dstruct.Type().Field(i).Name)
+// 						innerHtml = strings.ReplaceAll(innerHtml, "{{."+key+"}}", value)
+// 					}
+// 					body += fmt.Sprint("<", item.Tag(), argsToHTml(item.Args()), ">", innerHtml, "</", item.Tag(), ">")
+// 				}
+// 				body += fmt.Sprint("</", e.Tag(), ">")
+// 			}
+//
+// 		}
+// 	}
+// 	return fmt.Sprint(header, body, footer)
+// }
 
 // render element for html
 func (h *Html) RenderElement(e Element) (res string) {
