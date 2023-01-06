@@ -19,13 +19,27 @@ func NewState(name string, value any) *State {
 }
 
 // append children element
-func (s *State) Add(e Element) {
+func (s *State) AddElement(e Element) {
 	s.children = append(s.children, e)
 }
 
 // getter value in state
 func (s *State) Get() any {
 	return s.value
+}
+
+// add in data state
+func (s *State) Add(value any) {
+	switch s.value.(type) {
+	case int:
+		s.Set(s.value.(int) + value.(int))
+	case string:
+		s.Set(s.value.(string) + value.(string))
+	case float32, float64:
+		s.Set(Float(s.value) + Float(value))
+	default:
+		//s.Set(Append(s.value, value)) <-- no funciona
+	}
 }
 
 // setter value in state

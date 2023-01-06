@@ -44,6 +44,9 @@ func Link(args Args) *Ele {
 	return &Ele{tag: "link", args: args}
 }
 func Meta(args Args) *Ele {
+	if args.Name == "theme-color" {
+		args.id = "color-title"
+	}
 	return &Ele{tag: "meta", args: args}
 }
 func PageTitle(args Args) *Ele {

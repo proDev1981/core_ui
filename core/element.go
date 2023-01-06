@@ -201,3 +201,11 @@ func (e *Ele) GetValue() *PROMISE {
 func (e *Ele) SetValue(value string) {
 	e.MotorRender().SetValue(e, value)
 }
+
+// themes
+func (e *Ele) SetBackgroundColor(color string) {
+	e.MotorRender().SetBackgroundColor(color)
+}
+func (e *Ele) SetBackgroundTitle(color string) {
+	e.MotorRender().SetBackgroundTitle(color)
+}

@@ -31,6 +31,9 @@ type Motor interface {
 	SetInner(Element, string)
 	GetValue(Element) *PROMISE
 	SetValue(Element, string)
+	// themes
+	SetBackgroundColor(string)
+	SetBackgroundTitle(string)
 }
 
 // interface Element
@@ -69,4 +72,7 @@ type Element interface {
 	SetInner(string)
 	GetValue() *PROMISE
 	SetValue(string)
+	// themes
+	SetBackgroundColor(string)
+	SetBackgroundTitle(string)
 }

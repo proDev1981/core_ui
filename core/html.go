@@ -54,7 +54,7 @@ func HtmlBuild(p *page) Motor {
 // add listener in struct html
 // @ params
 // parent is id of element html
-// listener is map[type evenet]function event
+// listener is [type evenet]function event
 func (h *Html) AddEventListener(parent string, listener Listener) {
 	for types, call := range listener {
 		if h.server.GetSocket() == nil {
@@ -84,24 +84,27 @@ func (h *Html) RenderMap(e Element) string {
 	if e.Args().State != nil {
 		// get data with reflect
 		r_data := reflect.ValueOf(e.Args().State.Get())
-		len_data := r_data.Len()
-		if len_data > e.Args().Max && e.Args().Max > 0 {
-			len_data = e.Args().Max
-		}
-		if len_data > 0 {
-			for i := 0; i < len_data; i++ {
-				Struct := r_data.Index(i)
-				for _, item := range e.Children() {
-					item.setParent(e)
-					item.SetMotorRender(h)
-					inner := item.render()
-					for index := 0; index < Struct.NumField(); index++ {
-						name := "{{." + Struct.Type().Field(index).Name + "}}"
-						value := Struct.Field(index)
-						inner = strings.ReplaceAll(inner, name, fmt.Sprint(value))
+		if String(r_data.Kind()) == "slice" {
+			len_data := r_data.Len()
+			if len_data > e.Args().Max && e.Args().Max > 0 {
+				len_data = e.Args().Max
+			}
+			if len_data > 0 {
+				for i := 0; i < len_data; i++ {
+					Struct := r_data.Index(i)
+					for _, item := range e.Children() {
+						item.setParent(e)
+						item.SetMotorRender(h)
+						inner := item.render()
+						for index := 0; index < Struct.NumField(); index++ {
+							name := "{{." + Struct.Type().Field(index).Name + "}}"
+							value := Struct.Field(index)
+							inner = strings.ReplaceAll(inner, name, fmt.Sprint(value))
+						}
+						body += inner
 					}
-					body += inner
 				}
+
 			}
 		}
 
@@ -158,14 +161,14 @@ func (h *Html) RenderElement(e Element) (res string) {
 	if e.GetSubType() == "list" {
 		state := e.Args().State
 		e.getProvider().AddState(state)
-		state.Add(e)
+		state.AddElement(e)
 		res = h.RenderMap(e)
 	} else {
 		var value string
 		if e.Args().State != nil {
 			state := e.Args().State
 			e.getProvider().AddState(state)
-			state.Add(e)
+			state.AddElement(e)
 			value = replaceState(e.Args(), "")
 		} else {
 			value = e.Args().Value
@@ -408,4 +411,23 @@ func (h *Html) GetValue(e Element) *PROMISE {
 // set value element
 func (h *Html) SetValue(e Element, value string) {
 	h.SetAttribute(e, "value", value)
+}
+
+// themes
+func (h *Html) SetBackgroundColor(color string) {
+	setcolor := ComposeEval(
+		`document.querySelector('%s').style.backgroundColor='%s'`,
+		"body",
+		color,
+	)
+	h.Conn().WriteMessage(1, []byte(setcolor))
+}
+
+func (h *Html) SetBackgroundTitle(color string) {
+	setcolor := ComposeEval(
+		`document.querySelector('%s').content='%s'`,
+		"#color-title",
+		color,
+	)
+	h.Conn().WriteMessage(1, []byte(setcolor))
 }

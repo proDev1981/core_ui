@@ -20,4 +20,5 @@ type Args struct {
 	Max       int
 	Min       int
 	Charset   string
+	Content   string
 }
