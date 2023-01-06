@@ -1,14 +1,12 @@
 package ui
 
 import . "app/core"
-import . "app/model"
 
-func Title() Element {
+func Title(str string) Element {
 
-	action := NewState(Data{Str: "Alberto"})
-
+	title := NewState("title",str)
 	return Box(Args{Class: "container-title"},
-		Label(Args{Class: "title", State: action,
-			Value: "algo que decir {{.Str}} "}),
+		Label(Args{Class: "title", State: title,
+			   Value: "{{.title}}"),
 	)
 }
