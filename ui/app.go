@@ -5,6 +5,6 @@ import . "app/core"
 func App() Element {
 
 	return Box(Args{Name: "root"},
-		Title("Bine venido a CoreUI"),
+		Title("Bien venido a CoreUI"),
 	)
 }
