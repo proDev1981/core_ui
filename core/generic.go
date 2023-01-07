@@ -47,6 +47,13 @@ func Bool(data any) bool {
 }
 
 /* METHODS */
+// assert
+func Assert[T any](condition bool, a T, b T) T {
+	if condition {
+		return a
+	}
+	return b
+}
 
 // return new slice with items filtration
 func Filter[D any](data []D, fn func(index int, item D) bool) (res []D) {
