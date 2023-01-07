@@ -11,6 +11,7 @@ type Motor interface {
 	GetServer() *Server
 	SetConn(*websocket.Conn)
 	Conn() *websocket.Conn
+	Key(string) Element
 	RootSelector(string) Element
 	Selector(Element, string) Element
 	SelectorAll(Element, string) []Element
@@ -53,6 +54,7 @@ type Element interface {
 	AddEventListener(string, func(*Event))
 	SetMotorRender(Motor)
 	MotorRender() Motor
+	Key(string) Element
 	RootSelector(string) Element
 	Selector(string) Element
 	SelectorAll(string) []Element

@@ -1,14 +1,19 @@
 package core
 
+import "os"
+import "log"
 
-type Style struct{
-  margin string
-  padding string
-  color string
-  background string
-  widht string
-  height string
-  font string
-  x string
-  y string
+// falta por implementar
+func Styles(path string) *Ele {
+
+	var data []byte
+	data, err := os.ReadFile(path)
+	if err != nil {
+		log.Println("Error:", err)
+	}
+
+	return &Ele{
+		tag:  "style",
+		args: Args{Value: string(data)},
+	}
 }

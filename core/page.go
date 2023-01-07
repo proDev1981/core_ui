@@ -35,10 +35,6 @@ func (p *page) GetMotorRender() Motor {
 	return p.motorRender
 }
 
-// falta por implementar
-func Styles(path string) *Ele {
-	return &Ele{tag: "style"}
-}
 func Link(args Args) *Ele {
 	args.Rel = "stylesheet"
 	return &Ele{tag: "link", args: args}

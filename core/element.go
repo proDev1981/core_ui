@@ -120,6 +120,11 @@ func (e *Ele) RootSelector(query string) Element {
 	return e.MotorRender().RootSelector(query)
 }
 
+// search element in map by key
+func (e *Ele) Key(key string) Element {
+	return e.MotorRender().Key(key)
+}
+
 // search element by query
 func (e *Ele) Selector(query string) Element {
 	return e.MotorRender().Selector(e, query)

@@ -9,6 +9,7 @@ func main() {
 		Page(
 			Header(
 				Link(Args{Href: "./styles.css"}),
+				Meta(Args{Name: "theme-color", Content: "white"}),
 			),
 			Script(Args{Src: "./index.js"}),
 			ui.App(),

@@ -21,6 +21,7 @@ type Html struct {
 	dom      Element
 	conn     *websocket.Conn
 	provider *Provider
+	elements map[string]Element
 }
 
 var html *Html
@@ -28,7 +29,11 @@ var html *Html
 // contructor
 func NewHtml() *Html {
 	if html == nil {
-		return &Html{server: NewServer(), provider: newProvider()}
+		return &Html{
+			server:   NewServer(),
+			provider: newProvider(),
+			elements: make(map[string]Element),
+		}
 	}
 	return html
 }
@@ -158,6 +163,8 @@ func (h *Html) RenderMap(e Element) string {
 
 // render element for html
 func (h *Html) RenderElement(e Element) (res string) {
+	h.saveKey(e)
+	h.parseStyle(e)
 	if e.GetSubType() == "list" {
 		state := e.Args().State
 		e.getProvider().AddState(state)
@@ -184,7 +191,8 @@ func (h *Html) RenderElement(e Element) (res string) {
 			if item.Args().Link != nil {
 				event := Listener{"change": func(e *Event) {
 					// reparar link no se graba en bien
-					//*item.Args().Link = <-e.Target().GetAttribute("value").Await()
+					*item.Args().Link = <-e.Target().GetAttribute("value").Await()
+					//*item.Args().Link = PROMISE{}
 				}}
 				h.AddEventListener(item.Args().id, event)
 			}
@@ -219,6 +227,11 @@ func (h *Html) RenderPage(p *page) (res string) {
 // search element by query
 func (h *Html) RootSelector(query string) Element {
 	return selector(dom, query)
+}
+
+// search element in map element by key
+func (h *Html) Key(key string) Element {
+	return h.elements[key]
 }
 
 // search element by query
@@ -352,8 +365,19 @@ func (h *Html) GetData(e Element) map[string]string {
 	children := e.SelectorAll("input")
 	patter := make(map[string]string)
 	if len(children) > 0 {
-		for _, item := range children {
-			patter[item.Args().Class] = <-item.GetAttribute("value").Await()
+		for index, item := range children {
+			switch {
+			case item.Args().Placeholder != "":
+				patter[item.Args().Placeholder] = <-item.GetAttribute("value").Await()
+			case item.Args().Key != "":
+				patter[item.Args().Key] = <-item.GetAttribute("value").Await()
+			case item.Args().Class != "":
+				patter[item.Args().Class] = <-item.GetAttribute("value").Await()
+			case item.Args().Name != "":
+				patter[item.Args().Name] = <-item.GetAttribute("value").Await()
+			default:
+				patter[String(index)] = <-item.GetAttribute("value").Await()
+			}
 		}
 	}
 	return patter
@@ -430,4 +454,23 @@ func (h *Html) SetBackgroundTitle(color string) {
 		color,
 	)
 	h.Conn().WriteMessage(1, []byte(setcolor))
+}
+
+/* ASSETS */
+// save element in map with hash
+func (h *Html) saveKey(e Element) {
+	key := e.Args().Key
+	if key != "" {
+		h.elements[key] = e
+	}
+}
+
+// replace hash in css
+func (h *Html) parseStyle(e Element) {
+	if e.Tag() == "style" {
+		parent := fmt.Sprint("[ id = '", e.Parent().Args().id, "'] ")
+		log.Println(parent)
+		e.SetArgs(Args{Value: strings.ReplaceAll(e.Args().Value, "$", parent)})
+
+	}
 }
