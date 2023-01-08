@@ -1,11 +1,13 @@
 package core
 
 // falta por implementar
-func Styles(path string) *Ele {
+func Styles(args Args) *Ele {
 
+	if args.Src != "" {
+		args.Value = Mimi(getFile(args.Src)) + args.Value
+	}
 	return &Ele{
-		tag: "style",
-		args: Args{
-			Value: getFile(path)},
+		tag:  "style",
+		args: args,
 	}
 }

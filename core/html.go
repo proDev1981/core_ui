@@ -163,41 +163,42 @@ func (h *Html) RenderMap(e Element) string {
 
 // render element for html
 func (h *Html) RenderElement(e Element) (res string) {
-	h.saveKey(e)
-	h.parseStyle(e)
-	if e.GetSubType() == "list" {
-		state := e.Args().State
-		e.getProvider().AddState(state)
-		state.AddElement(e)
-		res = h.RenderMap(e)
-	} else {
-		var value string
-		if e.Args().State != nil {
+	if h.saveKey(e) {
+		h.parseStyle(e)
+		if e.GetSubType() == "list" {
 			state := e.Args().State
 			e.getProvider().AddState(state)
 			state.AddElement(e)
-			value = replaceState(e.Args(), "")
+			res = h.RenderMap(e)
 		} else {
-			value = e.Args().Value
-		}
-		res = fmt.Sprint("<", e.Tag(), argsToHTml(e.Args()), ">", value)
-		for _, item := range e.Children() {
-			item.setParent(e)
-			item.SetMotorRender(h)
-			res += item.render()
-			if !eventsIsEmpty(item.Args().Events) {
-				h.AddEventListener(item.Args().id, item.Args().Events)
+			var value string
+			if e.Args().State != nil {
+				state := e.Args().State
+				e.getProvider().AddState(state)
+				state.AddElement(e)
+				value = replaceState(e.Args(), "")
+			} else {
+				value = e.Args().Value
 			}
-			if item.Args().Link != nil {
-				event := Listener{"change": func(e *Event) {
-					// reparar link no se graba en bien
-					*item.Args().Link = <-e.Target().GetAttribute("value").Await()
-					//*item.Args().Link = PROMISE{}
-				}}
-				h.AddEventListener(item.Args().id, event)
+			res = fmt.Sprint("<", e.Tag(), argsToHTml(e.Args()), ">", value)
+			for _, item := range e.Children() {
+				item.setParent(e)
+				item.SetMotorRender(h)
+				res += item.render()
+				if !eventsIsEmpty(item.Args().Events) {
+					h.AddEventListener(item.Args().id, item.Args().Events)
+				}
+				if item.Args().Link != nil {
+					event := Listener{"change": func(e *Event) {
+						// reparar link no se graba en bien
+						*item.Args().Link = <-e.Target().GetAttribute("value").Await()
+						//*item.Args().Link = PROMISE{}
+					}}
+					h.AddEventListener(item.Args().id, event)
+				}
 			}
+			res += fmt.Sprint("</", e.Tag(), ">")
 		}
-		res += fmt.Sprint("</", e.Tag(), ">")
 	}
 	return
 }
@@ -457,19 +458,24 @@ func (h *Html) SetBackgroundTitle(color string) {
 }
 
 /* ASSETS */
+
 // save element in map with hash
-func (h *Html) saveKey(e Element) {
+func (h *Html) saveKey(e Element) bool {
 	key := e.Args().Key
 	if key != "" {
+		if h.elements[key] != nil {
+			log.Printf("Warning: Element <<%s>> duplicate!!\n", key)
+			return false
+		}
 		h.elements[key] = e
 	}
+	return true
 }
 
 // replace hash in css
 func (h *Html) parseStyle(e Element) {
 	if e.Tag() == "style" {
 		parent := fmt.Sprint("[ id = '", e.Parent().Args().id, "'] ")
-		log.Println(parent)
 		e.SetArgs(Args{Value: strings.ReplaceAll(e.Args().Value, "$", parent)})
 
 	}

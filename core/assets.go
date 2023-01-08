@@ -175,3 +175,8 @@ func UnPack[B any](data map[string]B, res ...*B) {
 func ConvertTo[T any](value any) T {
 	return value.(T)
 }
+
+// mimitificar string
+func Mimi(str string) string {
+	return strings.ReplaceAll(str, "\n", "")
+}

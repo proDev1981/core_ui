@@ -47,9 +47,19 @@ func Bool(data any) bool {
 }
 
 /* METHODS */
+
 // assert
 func Assert[T any](condition bool, a T, b T) T {
 	if condition {
+		return a
+	}
+	return b
+}
+
+// Default
+func Default[T any](a, b T) T {
+	value := String(a)
+	if value != "" && value != "0" && value != "<nil>" && value != "{}" {
 		return a
 	}
 	return b
