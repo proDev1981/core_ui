@@ -208,7 +208,7 @@ func (h *Html) RenderPage(p *page) (res string) {
 	var body string
 	var headers string
 
-	res = fmt.Sprint("<!DOCTYPEhtml><html>")
+	res = fmt.Sprint("<!DOCTYPEhtml><html lang='" + p.lang + "'>")
 	for _, item := range p.Children() {
 		item.SetMotorRender(p.motorRender)
 		if item.Tag() != "style" && item.Tag() != "head" {

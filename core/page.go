@@ -5,12 +5,16 @@ var p *page
 type page struct {
 	children    []Element
 	motorRender Motor
+	lang        string
 }
 
 // constructor struct page
-func Page(children ...Element) *page {
+func Page(lang string, children ...Element) *page {
 	if p == nil {
-		p = &page{children: children}
+		p = &page{
+			lang:     lang,
+			children: children,
+		}
 	}
 	return p
 }
