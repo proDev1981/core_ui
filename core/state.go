@@ -1,6 +1,7 @@
 package core
 
 import "log"
+import "reflect"
 
 // init
 func init() {
@@ -8,14 +9,13 @@ func init() {
 }
 
 type State struct {
-	name     string
 	value    any
 	children []Element
 }
 
 // constructor State
-func NewState(name string, value any) *State {
-	return &State{value: value, name: name}
+func NewState(value any) *State {
+	return &State{value: value}
 }
 
 // append children element
@@ -28,6 +28,11 @@ func (s *State) Get() any {
 	return s.value
 }
 
+//getter value with referency
+func (s *State) Fill(value any) {
+	reflect.ValueOf(value).Elem().Set(reflect.ValueOf(s.value))
+}
+
 // add in data state
 func (s *State) Add(value any) {
 	switch s.value.(type) {
@@ -38,14 +43,13 @@ func (s *State) Add(value any) {
 	case float32, float64:
 		s.Set(Float(s.value) + Float(value))
 	default:
-		//s.Set(Append(s.value, value)) <-- no funciona
+		s.Set(reflect.Append(reflect.ValueOf(s.value), reflect.ValueOf(value)).Interface())
 	}
 }
 
 // setter value in state
 func (s *State) Set(value any) {
 	//if fmt.Sprint(s.value) != fmt.Sprint(value) {
-	log.Println(value)
 	s.value = value
 	s.uploadElements()
 }

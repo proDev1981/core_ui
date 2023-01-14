@@ -130,6 +130,7 @@ func (so *Socket) ConvertSms(data []byte) reciverSms {
 // inyection conn cliente in sms reciver
 func (so *Socket) AddClient(sms reciverSms, client *websocket.Conn) reciverSms {
 	sms.Event.Client = client
+	html.SetConn(client)
 	return sms
 }
 

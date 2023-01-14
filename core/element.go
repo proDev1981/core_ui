@@ -165,16 +165,6 @@ func (e *Ele) GetData() map[string]string {
 	return e.MotorRender().GetData(e)
 }
 
-// return provider
-func (e *Ele) getProvider() *Provider {
-	return e.MotorRender().getProvider()
-}
-
-// return state from map provider
-func (e *Ele) GetState(name string) *State {
-	return e.MotorRender().GetState(name)
-}
-
 // reset value elemnet
 func (e *Ele) Reset() Element {
 	e.MotorRender().Reset(e)

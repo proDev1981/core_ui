@@ -16,9 +16,6 @@ type Motor interface {
 	Selector(Element, string) Element
 	SelectorAll(Element, string) []Element
 	Update(Element)
-	// provider
-	getProvider() *Provider
-	GetState(string) *State
 	// js binding
 	NewObject(Element, string, any) *PROMISE
 	GetAttribute(Element, string) *PROMISE
@@ -58,9 +55,6 @@ type Element interface {
 	RootSelector(string) Element
 	Selector(string) Element
 	SelectorAll(string) []Element
-	// provider
-	getProvider() *Provider
-	GetState(string) *State
 	// js binding
 	NewObject(string, any) *PROMISE
 	GetAttribute(string) *PROMISE

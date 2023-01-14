@@ -89,10 +89,8 @@ func Fisrt[D any](data []D) D {
 }
 
 // append
-func Append(base any, value any) (res []any) {
+func Append[T any](base []T, value T) (res []T) {
 	// no funciona
-	res = append(res, base)
-	res = append(res, value)
-
+	res = append(base, value)
 	return
 }

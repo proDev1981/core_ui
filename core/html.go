@@ -20,7 +20,6 @@ type Html struct {
 	server   *Server
 	dom      Element
 	conn     *websocket.Conn
-	provider *Provider
 	elements map[string]Element
 }
 
@@ -29,9 +28,8 @@ var html *Html
 // contructor
 func NewHtml() *Html {
 	if html == nil {
-		return &Html{
+		html = &Html{
 			server:   NewServer(),
-			provider: newProvider(),
 			elements: make(map[string]Element),
 		}
 	}
@@ -167,14 +165,12 @@ func (h *Html) RenderElement(e Element) (res string) {
 		h.parseStyle(e)
 		if e.GetSubType() == "list" {
 			state := e.Args().State
-			e.getProvider().AddState(state)
 			state.AddElement(e)
 			res = h.RenderMap(e)
 		} else {
 			var value string
 			if e.Args().State != nil {
 				state := e.Args().State
-				e.getProvider().AddState(state)
 				state.AddElement(e)
 				value = replaceState(e.Args(), "")
 			} else {
@@ -278,7 +274,7 @@ func (h *Html) Update(e Element) {
 	compose := ComposeEval("document.getElementById('%s').outerHTML =`%s`",
 		e.Args().id, e.render(),
 	)
-	h.conn.WriteMessage(1, []byte(compose))
+	h.Conn().WriteMessage(1, []byte(compose))
 }
 
 // create new objetc in js
@@ -382,16 +378,6 @@ func (h *Html) GetData(e Element) map[string]string {
 		}
 	}
 	return patter
-}
-
-// return provider
-func (h *Html) getProvider() *Provider {
-	return h.provider
-}
-
-// return state from map provider
-func (h *Html) GetState(name string) *State {
-	return h.provider.GetState(name)
 }
 
 // delete value element

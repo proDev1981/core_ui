@@ -93,7 +93,7 @@ func isSlice(v any) bool {
 }
 
 // convert struct[any] to map[key struct]value struct
-func entries(v any) map[string]string {
+func Entries(v any) map[string]string {
 	res := make(map[string]string)
 	T := reflect.TypeOf(v)
 	V := reflect.ValueOf(v)
@@ -117,7 +117,7 @@ func replaceState(e Args, change string) (value string) {
 
 	if isStruct(e.State.Get()) {
 		// if value state is struct[any]
-		for key, val := range entries(e.State.Get()) {
+		for key, val := range Entries(e.State.Get()) {
 			value = strings.ReplaceAll(value, "{{."+key+"}}", val)
 		}
 		// if value state is []any
@@ -178,5 +178,5 @@ func ConvertTo[T any](value any) T {
 
 // mimitificar string
 func Mimi(str string) string {
-	return strings.ReplaceAll(str, "\n", "")
+	return strings.ReplaceAll(strings.ReplaceAll(str, "\n", ""), "\r", "")
 }
