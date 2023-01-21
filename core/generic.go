@@ -57,12 +57,18 @@ func Assert[T any](condition bool, a T, b T) T {
 }
 
 // Default
-func Default[T any](a, b T) T {
-	value := String(a)
-	if value != "" && value != "0" && value != "<nil>" && value != "{}" {
-		return a
+func Default[T any](a *T, b T) {
+	if LikeNil(*a) {
+		*a = b
 	}
-	return b
+}
+
+// return if value like a nil
+func LikeNil(data any) bool {
+	if value := String(data); value == "" || value == "0" || value == "<nil>" || value == "{}" {
+		return true
+	}
+	return false
 }
 
 // return new slice with items filtration

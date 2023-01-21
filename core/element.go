@@ -136,17 +136,17 @@ func (e *Ele) SelectorAll(query string) []Element {
 }
 
 // create new object in js client
-func (e *Ele) NewObject(name string, value any) *PROMISE {
+func (e *Ele) NewObject(name string, value any) string {
 	return e.MotorRender().NewObject(e, name, value)
 }
 
 // get attribute of element in dom html
-func (e *Ele) GetAttribute(value string) *PROMISE {
+func (e *Ele) GetAttribute(value string) string {
 	return e.MotorRender().GetAttribute(e, value)
 }
 
 // set attribute of element in dom html
-func (e *Ele) SetAttribute(name string, value string) *PROMISE {
+func (e *Ele) SetAttribute(name string, value string) string {
 	return e.MotorRender().SetAttribute(e, name, value)
 }
 
@@ -178,7 +178,7 @@ func (e *Ele) Focus() Element {
 }
 
 // get innerHtml element
-func (e *Ele) GetInner() *PROMISE {
+func (e *Ele) GetInner() string {
 	return e.MotorRender().GetInner(e)
 }
 
@@ -188,7 +188,7 @@ func (e *Ele) SetInner(value string) {
 }
 
 // get value element
-func (e *Ele) GetValue() *PROMISE {
+func (e *Ele) GetValue() string {
 	return e.MotorRender().GetValue(e)
 }
 

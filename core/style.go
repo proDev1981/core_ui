@@ -1,13 +1,17 @@
 package core
 
-// falta por implementar
-func Styles(args Args) *Ele {
-
-	if args.Src != "" {
-		args.Value = Mimi(getFile(args.Src)) + args.Value
-	}
+// make element with gcss
+func Styles(css string) *Ele {
 	return &Ele{
 		tag:  "style",
-		args: args,
+		args: Args{Value: css},
+	}
+}
+
+// get css from file css with path and make element
+func StylesFrom(path string) *Ele {
+	return &Ele{
+		tag:  "style",
+		args: Args{Value: Mimi(getFile(path))},
 	}
 }

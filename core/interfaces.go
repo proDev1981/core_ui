@@ -17,17 +17,17 @@ type Motor interface {
 	SelectorAll(Element, string) []Element
 	Update(Element)
 	// js binding
-	NewObject(Element, string, any) *PROMISE
-	GetAttribute(Element, string) *PROMISE
-	SetAttribute(Element, string, string) *PROMISE
+	NewObject(Element, string, any) string
+	GetAttribute(Element, string) string
+	SetAttribute(Element, string, string) string
 	Log(Element, ...string)
 	Alert(Element, ...string)
 	GetData(Element) map[string]string
 	Reset(Element) Element
 	Focus(Element) Element
-	GetInner(Element) *PROMISE
+	GetInner(Element) string
 	SetInner(Element, string)
-	GetValue(Element) *PROMISE
+	GetValue(Element) string
 	SetValue(Element, string)
 	// themes
 	SetBackgroundColor(string)
@@ -56,17 +56,17 @@ type Element interface {
 	Selector(string) Element
 	SelectorAll(string) []Element
 	// js binding
-	NewObject(string, any) *PROMISE
-	GetAttribute(string) *PROMISE
-	SetAttribute(string, string) *PROMISE
+	NewObject(string, any) string
+	GetAttribute(string) string
+	SetAttribute(string, string) string
 	Log(...string)
 	Alert(...string)
 	GetData() map[string]string
 	Reset() Element
 	Focus() Element
-	GetInner() *PROMISE
+	GetInner() string
 	SetInner(string)
-	GetValue() *PROMISE
+	GetValue() string
 	SetValue(string)
 	// themes
 	SetBackgroundColor(string)

@@ -187,7 +187,7 @@ func (h *Html) RenderElement(e Element) (res string) {
 				if item.Args().Link != nil {
 					event := Listener{"change": func(e *Event) {
 						// reparar link no se graba en bien
-						*item.Args().Link = <-e.Target().GetAttribute("value").Await()
+						*item.Args().Link = e.Target().GetAttribute("value")
 						//*item.Args().Link = PROMISE{}
 					}}
 					h.AddEventListener(item.Args().id, event)
@@ -278,18 +278,18 @@ func (h *Html) Update(e Element) {
 }
 
 // create new objetc in js
-func (h *Html) NewObject(e Element, name string, value any) *PROMISE {
+func (h *Html) NewObject(e Element, name string, value any) string {
 	p := NewPromise(h)
 	val := strings.ReplaceAll(string(assets.Try(json.Marshal(value))), `"`, "'")
 	createObject := ComposeEval(`window.%s = new Object`, name)
 	fillObject := ComposeEvalAnsResponse(p.id, `%s=%s`, name, val)
 	h.Conn().WriteMessage(1, []byte(createObject))
 	h.Conn().WriteMessage(1, []byte(fillObject))
-	return p
+	return <-p.Await()
 }
 
 // set attribute of element in dom html
-func (h *Html) SetAttribute(e Element, name, value string) *PROMISE {
+func (h *Html) SetAttribute(e Element, name, value string) string {
 	var cmd string
 	if name == "value" {
 		if e.GetSubType() == "button" {
@@ -307,11 +307,11 @@ func (h *Html) SetAttribute(e Element, name, value string) *PROMISE {
 		value,
 	)
 	h.Conn().WriteMessage(1, []byte(setAttribute))
-	return p
+	return <-p.Await()
 }
 
 // geter attribute of element in dom html
-func (h *Html) GetAttribute(e Element, name string) *PROMISE {
+func (h *Html) GetAttribute(e Element, name string) string {
 	p := NewPromise(h)
 	var getAttribute string
 	if name == "value" {
@@ -334,7 +334,7 @@ func (h *Html) GetAttribute(e Element, name string) *PROMISE {
 		)
 	}
 	h.Conn().WriteMessage(1, []byte(getAttribute))
-	return p
+	return <-p.Await()
 }
 
 // log string in js console
@@ -365,15 +365,15 @@ func (h *Html) GetData(e Element) map[string]string {
 		for index, item := range children {
 			switch {
 			case item.Args().Placeholder != "":
-				patter[item.Args().Placeholder] = <-item.GetAttribute("value").Await()
+				patter[item.Args().Placeholder] = item.GetAttribute("value")
 			case item.Args().Key != "":
-				patter[item.Args().Key] = <-item.GetAttribute("value").Await()
+				patter[item.Args().Key] = item.GetAttribute("value")
 			case item.Args().Class != "":
-				patter[item.Args().Class] = <-item.GetAttribute("value").Await()
+				patter[item.Args().Class] = item.GetAttribute("value")
 			case item.Args().Name != "":
-				patter[item.Args().Name] = <-item.GetAttribute("value").Await()
+				patter[item.Args().Name] = item.GetAttribute("value")
 			default:
-				patter[String(index)] = <-item.GetAttribute("value").Await()
+				patter[String(index)] = item.GetAttribute("value")
 			}
 		}
 	}
@@ -394,14 +394,14 @@ func (h *Html) Focus(e Element) Element {
 }
 
 // get innerhtml element
-func (h *Html) GetInner(e Element) *PROMISE {
+func (h *Html) GetInner(e Element) string {
 	p := NewPromise(h)
 	getInnerHtml := ComposeEvalAnsResponse(p.id,
 		"document.getElementById('%s').innerHTML",
 		e.Args().id,
 	)
 	h.Conn().WriteMessage(1, []byte(getInnerHtml))
-	return p
+	return <-p.Await()
 }
 
 // set innerHTML element
@@ -415,7 +415,7 @@ func (h *Html) SetInner(e Element, value string) {
 }
 
 // get value element
-func (h *Html) GetValue(e Element) *PROMISE {
+func (h *Html) GetValue(e Element) string {
 	return h.GetAttribute(e, "value")
 }
 
