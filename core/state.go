@@ -47,6 +47,30 @@ func (s *State) Add(value any) {
 	}
 }
 
+// sub in data state
+func (s *State) Sub(value int) {
+	switch s.value.(type) {
+	case int:
+		s.Set(s.value.(int) - value)
+	case float32, float64:
+		s.Set(Float(s.value) - Float(value))
+	default:
+		data := reflect.ValueOf(s.value)
+		switch {
+		case data.Len() <= value:
+			log.Println("len is <= value insert")
+		default:
+			s.Set(reflect.AppendSlice(data.Slice(0, value), data.Slice(value+1, data.Len())).Interface())
+		}
+
+	}
+}
+
+// return len of data in state
+func (s *State) Len() int {
+	return reflect.ValueOf(s.value).Len()
+}
+
 // setter value in state
 func (s *State) Set(value any) {
 	//if fmt.Sprint(s.value) != fmt.Sprint(value) {
