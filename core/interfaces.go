@@ -45,6 +45,7 @@ type Element interface {
 	State(s *State) Element
 	SetTag(string)
 	Tag() string
+	setId(string)
 	SetArgs(Args)
 	Args() Args
 	GetSubType() string

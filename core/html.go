@@ -96,6 +96,7 @@ func (h *Html) RenderMap(e Element) string {
 				for i := 0; i < len_data; i++ {
 					Struct := r_data.Index(i)
 					for _, item := range e.Children() {
+						item.setId("") //delete id in element mapper
 						item.setParent(e)
 						item.SetMotorRender(h)
 						inner := item.render()
@@ -178,6 +179,9 @@ func (h *Html) RenderElement(e Element) (res string) {
 			}
 			res = fmt.Sprint("<", e.Tag(), argsToHTml(e.Args()), ">", value)
 			for _, item := range e.Children() {
+				if e.Args().id == "" {
+					item.setId("") // delete id if parent is mapper
+				}
 				item.setParent(e)
 				item.SetMotorRender(h)
 				res += item.render()

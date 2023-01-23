@@ -75,6 +75,11 @@ func (e *Ele) Tag() string {
 	return e.tag
 }
 
+// setter id
+func (e *Ele) setId(id string) {
+	e.args.id = id
+}
+
 // setter args
 func (e *Ele) SetArgs(a Args) {
 	e.args = a
