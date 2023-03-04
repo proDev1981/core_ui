@@ -1,0 +1,14 @@
+{
+  "name": "app",
+  "short_name": "app",
+  "theme-color":" red",
+  "icons": [
+    {
+      "src": "assets/manifest-logos/36.png",
+      "sizes": "36x36",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "./",
+  "display": "standalone"
+}

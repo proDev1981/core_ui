@@ -1,12 +1,27 @@
 package ui
 
-import . "app/core"
+import "app/core"
+import "app/components/post"
+import "app/ui/controler"
+import "app/store"
 
-func App() Element {
+func App() core.Element {
 
-	return Box(Args{Name: "root"},
-		Title("Bien venido a CoreUI"),
-		Prueba(),
-		Controler(),
+	return core.Box(
+		core.Args{
+			Name: "root",
+		},
+		core.List(
+			core.Args{
+				State: store.States["data"],
+			},
+			post.New(
+				post.Args{
+					Title:   "{{.Email}}",
+					Image:   "man.png",
+					Content: "{{.Content}}",
+				}),
+		),
+		controler.New(),
 	)
 }
