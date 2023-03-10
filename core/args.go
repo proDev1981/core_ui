@@ -9,6 +9,7 @@ type Args struct {
 	Value       string
 	Src         string
 	Alt         string
+	List        string
 	State       *State
 	Events      Listener
 	Direction   string

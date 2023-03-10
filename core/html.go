@@ -232,7 +232,11 @@ func (h *Html) RootSelector(query string) Element {
 
 // search element in map element by key
 func (h *Html) Key(key string) Element {
-	return h.elements[key]
+	ele := h.elements[key]
+	if ele == nil {
+		panic(fmt.Sprintf("<Element key:'%s'> not found!!", key))
+	}
+	return ele
 }
 
 // search element by query

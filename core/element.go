@@ -80,6 +80,11 @@ func (e *Ele) setId(id string) {
 	e.args.id = id
 }
 
+// getter id
+func (e *Ele) GetId() string {
+	return e.args.id
+}
+
 // setter args
 func (e *Ele) SetArgs(a Args) {
 	e.args = a
