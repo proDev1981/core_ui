@@ -19,7 +19,7 @@ type Motor interface {
 	// js binding
 	NewObject(Element, string, any) string
 	GetAttribute(Element, string) string
-	SetAttribute(Element, string, string) string
+	SetAttribute(Element, string, string)
 	Log(Element, ...string)
 	Alert(Element, ...string)
 	GetData(Element) map[string]string
@@ -59,7 +59,7 @@ type Element interface {
 	// js binding
 	NewObject(string, any) string
 	GetAttribute(string) string
-	SetAttribute(string, string) string
+	SetAttribute(string, string)
 	Log(...string)
 	Alert(...string)
 	GetData() map[string]string

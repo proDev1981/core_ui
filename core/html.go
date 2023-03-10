@@ -297,7 +297,7 @@ func (h *Html) NewObject(e Element, name string, value any) string {
 }
 
 // set attribute of element in dom html
-func (h *Html) SetAttribute(e Element, name, value string) string {
+func (h *Html) SetAttribute(e Element, name, value string) {
 	var cmd string
 	if name == "value" {
 		if e.GetSubType() == "button" {
@@ -307,7 +307,7 @@ func (h *Html) SetAttribute(e Element, name, value string) string {
 	} else {
 		cmd = `document.getElementById('%s').setAttribute('%s','%s')`
 	}
-	p := NewPromise(h)
+	//p := NewPromise(h)
 	setAttribute := ComposeEval(
 		cmd,
 		e.Args().id,
@@ -315,7 +315,7 @@ func (h *Html) SetAttribute(e Element, name, value string) string {
 		value,
 	)
 	h.Conn().WriteMessage(1, []byte(setAttribute))
-	return <-p.Await()
+	//return <-p.Await()
 }
 
 // geter attribute of element in dom html

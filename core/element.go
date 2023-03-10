@@ -156,8 +156,8 @@ func (e *Ele) GetAttribute(value string) string {
 }
 
 // set attribute of element in dom html
-func (e *Ele) SetAttribute(name string, value string) string {
-	return e.MotorRender().SetAttribute(e, name, value)
+func (e *Ele) SetAttribute(name string, value string) {
+	e.MotorRender().SetAttribute(e, name, value)
 }
 
 // log in js console
