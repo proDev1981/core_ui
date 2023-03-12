@@ -2,6 +2,7 @@ package core
 
 import "log"
 import "reflect"
+import "fmt"
 
 // init
 func init() {
@@ -21,6 +22,11 @@ func NewState(value any) *State {
 // append children element
 func (s *State) AddElement(e Element) {
 	s.children = append(s.children, e)
+}
+
+// return string value
+func (s *State) ToString() string {
+	return fmt.Sprint(s.Get())
 }
 
 // getter value in state

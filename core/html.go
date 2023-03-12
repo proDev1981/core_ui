@@ -1,11 +1,13 @@
 package core
 
 import "fmt"
+import "regexp"
 import "strings"
 import "log"
 import "reflect"
 import "os"
 import "assets"
+import "extend"
 import "encoding/json"
 import "github.com/gorilla/websocket"
 
@@ -80,13 +82,28 @@ func (h *Html) GetServer() *Server {
 	return h.server
 }
 
+// render for
+func (h *Html) renderFor(e Element) (res string) {
+	return
+}
+
 // render nuevo
 func (h *Html) RenderMap(e Element) string {
 	header := fmt.Sprint("<", e.Tag(), argsToHTml(e.Args()), ">")
 	var body string
-	if e.Args().State != nil {
+	var state *State
+	state = e.Args().State
+	if e.Args().Store != nil {
+		if e.Args().Each != "" {
+			state = e.Args().Store[e.Args().Each]
+		} else {
+			return ""
+		}
+	}
+	if state != nil {
+		state.AddElement(e)
 		// get data with reflect
-		r_data := reflect.ValueOf(e.Args().State.Get())
+		r_data := reflect.ValueOf(state.Get())
 		if String(r_data.Kind()) == "slice" {
 			len_data := r_data.Len()
 			if len_data > e.Args().Max && e.Args().Max > 0 {
@@ -95,13 +112,14 @@ func (h *Html) RenderMap(e Element) string {
 			if len_data > 0 {
 				for i := 0; i < len_data; i++ {
 					Struct := r_data.Index(i)
+					// loop children
 					for _, item := range e.Children() {
 						item.setId("") //delete id in element mapper
 						item.setParent(e)
 						item.SetMotorRender(h)
 						inner := item.render()
 						for index := 0; index < Struct.NumField(); index++ {
-							name := "{{." + Struct.Type().Field(index).Name + "}}"
+							name := "{{" + Struct.Type().Field(index).Name + "}}"
 							value := Struct.Field(index)
 							inner = strings.ReplaceAll(inner, name, fmt.Sprint(value))
 						}
@@ -118,66 +136,61 @@ func (h *Html) RenderMap(e Element) string {
 	return header + body + foother
 }
 
-// render map element
-// func (h *Html) RenderMap(e Element) string {
-// 	var body string
-// 	var header string
-// 	var footer string
-//
-// 	header += fmt.Sprint("<", e.Tag(), argsToHTml(e.Args()), ">")
-// 	footer += fmt.Sprint("</", e.Tag(), ">")
-//
-// 	if e.Args().State != nil {
-// 		types := fmt.Sprintf("%T", e.Args().State)
-// 		if types == "*core.State" {
-// 			data := e.Args().State.Get()
-// 			Dvalue := reflect.ValueOf(data)
-// 			lenArrayData := Dvalue.Len()
-// 			if lenArrayData > e.Args().Max && e.Args().Max > 0 {
-// 				lenArrayData = e.Args().Max
-// 			}
-// 			for i := 0; i < lenArrayData; i++ {
-// 				Dstruct := Dvalue.Index(i)
-// 				argsContainer := e.Args()
-// 				argsContainer.Class = e.Args().Class + "-item"
-// 				body += fmt.Sprint("<", e.Tag(), argsToHTml(argsContainer), ">")
-// 				for _, item := range e.Children() {
-// 					item.setParent(e)
-// 					lenFieldsInStruct := Dstruct.NumField()
-// 					innerHtml := item.Args().Value
-// 					for i := 0; i < lenFieldsInStruct; i++ {
-// 						value := fmt.Sprint(Dstruct.Field(i))
-// 						key := fmt.Sprint(Dstruct.Type().Field(i).Name)
-// 						innerHtml = strings.ReplaceAll(innerHtml, "{{."+key+"}}", value)
-// 					}
-// 					body += fmt.Sprint("<", item.Tag(), argsToHTml(item.Args()), ">", innerHtml, "</", item.Tag(), ">")
-// 				}
-// 				body += fmt.Sprint("</", e.Tag(), ">")
-// 			}
-//
-// 		}
-// 	}
-// 	return fmt.Sprint(header, body, footer)
-// }
-
 // render element for html
 func (h *Html) RenderElement(e Element) (res string) {
 	if h.saveKey(e) {
 		h.parseStyle(e)
 		if e.GetSubType() == "list" {
-			state := e.Args().State
-			state.AddElement(e)
 			res = h.RenderMap(e)
 		} else {
 			var value string
+			/* to state */
 			if e.Args().State != nil {
 				state := e.Args().State
 				state.AddElement(e)
 				value = replaceState(e.Args(), "")
+
+				/* to store */
+			} else if e.Args().Store != nil {
+				var state *State
+				var val string
+				value = e.Args().Value
+				// compilo la expresion regular
+				r, err := regexp.Compile(`\{\{[\w\d\.]+\}\}`)
+				if err != nil {
+					fmt.Println("Error:", err.Error())
+				} else {
+					// buscar variables en template
+					matches := r.FindAllString(e.Args().Value, -1)
+					/* loop matches */
+					for _, match := range matches {
+						// limpio la varible del template
+						name := strings.ReplaceAll(strings.ReplaceAll(match, "{", ""), "}", "")
+						// compruebo si esta pidiendo un objeto o un valor primitivo
+						sliceMatch := TrimSlice(strings.Split(name, "."), "")
+						switch {
+						case len(sliceMatch) <= 1: // value primitive
+							name = sliceMatch[0]
+							// rescato stado del store
+							state = e.Args().Store[name]
+							val = state.ToString()
+						case len(sliceMatch) > 1: // value complex
+							name = sliceMatch[0]
+							state = e.Args().Store[name]
+							val = extend.Entries(state.Get())[sliceMatch[1]]
+						}
+						// añadir elemento a los estados necesarios
+						state.AddElement(e)
+						// remplazar varibles con su valor en el estado
+						value = strings.ReplaceAll(value, match, val)
+					}
+				}
+				/* element no reactive and static */
 			} else {
 				value = e.Args().Value
 			}
 			res = fmt.Sprint("<", e.Tag(), argsToHTml(e.Args()), ">", value)
+			// render childrens
 			for _, item := range e.Children() {
 				if e.Args().id == "" {
 					item.setId("") // delete id if parent is mapper
@@ -187,14 +200,6 @@ func (h *Html) RenderElement(e Element) (res string) {
 				res += item.render()
 				if !eventsIsEmpty(item.Args().Events) {
 					h.AddEventListener(item.Args().id, item.Args().Events)
-				}
-				if item.Args().Link != nil {
-					event := Listener{"change": func(e *Event) {
-						// reparar link no se graba en bien
-						*item.Args().Link = e.Target().GetAttribute("value")
-						//*item.Args().Link = PROMISE{}
-					}}
-					h.AddEventListener(item.Args().id, event)
 				}
 			}
 			res += fmt.Sprint("</", e.Tag(), ">")
@@ -473,4 +478,14 @@ func (h *Html) parseStyle(e Element) {
 		e.SetArgs(Args{Value: strings.ReplaceAll(e.Args().Value, "$", parent)})
 
 	}
+}
+
+// replace all item match
+func TrimSlice(s []string, query string) (res []string) {
+	for _, item := range s {
+		if item != query {
+			res = append(res, item)
+		}
+	}
+	return
 }

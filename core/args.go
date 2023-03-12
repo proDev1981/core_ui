@@ -10,7 +10,10 @@ type Args struct {
 	Src         string
 	Alt         string
 	List        string
+	Each        string
+	FallBack    Element
 	State       *State
+	Store       Provider
 	Events      Listener
 	Direction   string
 	Rel         string
