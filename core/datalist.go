@@ -1,8 +1,6 @@
-package datalist
+package core
 
-import . "app/core"
-
-func New(args Args, childs ...string) Element {
+func DataList(args Args, childs ...string) Element {
 	datalist := NewElement(
 		"datalist",
 		"datalist",

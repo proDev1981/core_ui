@@ -9,10 +9,11 @@ type page struct {
 }
 
 // constructor struct page
-func Page(lang string, children ...Element) *page {
+func Page(children ...Element) *page {
+	defaultConf(&children)
 	if p == nil {
 		p = &page{
-			lang:     lang,
+			lang:     extractLang(&children),
 			children: children,
 		}
 	}
@@ -57,4 +58,27 @@ func Header(children ...Element) *Ele {
 }
 func Script(args Args) *Ele {
 	return &Ele{tag: "script", args: args}
+}
+func Lang(lang string) *Ele {
+	return &Ele{tag: "lang", subtype: lang}
+}
+
+/* assets */
+func extractLang(c *[]Element) (res string) {
+	var newchildrens []Element
+	for _, item := range *c {
+		if item.Tag() == "lang" {
+			res = item.GetSubType()
+		} else {
+			newchildrens = append(newchildrens, item)
+		}
+	}
+	c = &newchildrens
+	return "es"
+}
+
+// add default configuration page
+func defaultConf(children *[]Element) {
+	*children = append(*children, Header(Meta(Args{Name: "theme-color", Content: "dark"})))
+	*children = append(*children, Script(Args{Src: "./index.js"}))
 }

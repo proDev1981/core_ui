@@ -180,3 +180,11 @@ func ConvertTo[T any](value any) T {
 func Mimi(str string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(str, "\n", ""), "\r", "")
 }
+
+// generate option for tag select html
+func generateOptions(childs []string) (res []Element) {
+	for _, item := range childs {
+		res = append(res, NewElement("item", "option", Args{Value: item}))
+	}
+	return
+}

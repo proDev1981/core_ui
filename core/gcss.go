@@ -1,6 +1,8 @@
-package gcss
+package core
 
-import . "app/core"
+import (
+	"strings"
+)
 
 var attributes = map[string]string{
 	"BgColor":        "background-color",
@@ -27,9 +29,17 @@ type Sheet map[string]*Rule
 
 func (s Sheet) Parse() (res string) {
 	for key, value := range s {
+		if strings.Contains(key, "global") {
+			key = strings.Replace(key, "global ", "", 1)
+		} else {
+			key = "$" + key
+		}
 		res += value.Parse(key)
 	}
 	return
+}
+func ToCss(sheet Sheet) string {
+	return sheet.Parse()
 }
 
 type Rule struct {

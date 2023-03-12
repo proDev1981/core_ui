@@ -7,7 +7,7 @@ import "log"
 import "reflect"
 import "os"
 import "assets"
-import "extend"
+import "extend/meta"
 import "encoding/json"
 import "github.com/gorilla/websocket"
 
@@ -177,7 +177,7 @@ func (h *Html) RenderElement(e Element) (res string) {
 						case len(sliceMatch) > 1: // value complex
 							name = sliceMatch[0]
 							state = e.Args().Store[name]
-							val = extend.Entries(state.Get())[sliceMatch[1]]
+							val = meta.Entries(state.Get())[sliceMatch[1]]
 						}
 						// añadir elemento a los estados necesarios
 						state.AddElement(e)
