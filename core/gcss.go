@@ -23,6 +23,9 @@ var attributes = map[string]string{
 	"FlexDirection":  "flex-direction",
 	"JustifyContent": "justify-content",
 	"AlignItems":     "align-items",
+	"BoxSizing":      "box-sizing",
+	"OverFlow":       "overflow",
+	"Transition":     "transition",
 }
 
 type Sheet map[string]*Rule
@@ -57,10 +60,13 @@ type Rule struct {
 	BorderColor    string
 	BorderRadius   string
 	BoxShadow      string
+	BoxSizing      string
 	Display        string
 	JustifyContent string
 	AlignItems     string
 	FlexDirection  string
+	OverFlow       string
+	Transition     string
 	Hover          *Rule
 }
 

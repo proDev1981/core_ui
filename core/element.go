@@ -2,6 +2,7 @@ package core
 
 import "fmt"
 import "log"
+import "strings"
 
 // init
 func init() {
@@ -20,6 +21,9 @@ type Ele struct {
 
 // contructor element
 func NewElement(sub string, tag string, args Args, childs ...Element) *Ele {
+	if strings.Contains(args.Value, "{{") && strings.Contains(args.Value, "}}") {
+		args.reactive = true
+	}
 	e := &Ele{subtype: sub, tag: tag, args: args}
 	e.args.id = fmt.Sprintf("%p", e) // grabo la direccion de memoria como id
 	if len(childs) > 0 {
@@ -75,6 +79,21 @@ func (e *Ele) Tag() string {
 	return e.tag
 }
 
+// getter class
+func (e *Ele) GetClass() string {
+	return e.args.Class
+}
+
+// setter class
+func (e *Ele) SetClass(c string) {
+	e.args.Class = c
+}
+
+// add class
+func (e *Ele) AddClass(c string) {
+	e.args.Class += " " + c
+}
+
 // setter id
 func (e *Ele) setId(id string) {
 	e.args.id = id
@@ -93,6 +112,16 @@ func (e *Ele) SetArgs(a Args) {
 // getter args
 func (e *Ele) Args() Args {
 	return e.args
+}
+
+// getter reactive
+func (e *Ele) IsReactive() bool {
+	return e.args.reactive
+}
+
+// setter reactive
+func (e *Ele) SetReactive(v bool) {
+	e.args.reactive = v
 }
 
 // getter children
@@ -213,4 +242,18 @@ func (e *Ele) SetBackgroundColor(color string) {
 }
 func (e *Ele) SetBackgroundTitle(color string) {
 	e.MotorRender().SetBackgroundTitle(color)
+}
+
+// apparence
+func (e *Ele) Colapsed() Element {
+	if e.MotorRender() != nil {
+		e.MotorRender().AddClass(e, "colapsed")
+	} else {
+		e.AddClass("colapsed")
+	}
+	return e
+}
+func (e *Ele) Uncolapsed() Element {
+	e.MotorRender().RemoveClass(e, "colapsed")
+	return e
 }

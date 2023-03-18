@@ -26,4 +26,5 @@ type Args struct {
 	Charset     string
 	Content     string
 	Placeholder string
+	reactive    bool
 }

@@ -93,9 +93,9 @@ func (h *Html) RenderMap(e Element) string {
 	var body string
 	var state *State
 	state = e.Args().State
-	if e.Args().Store != nil {
+	if Store != nil {
 		if e.Args().Each != "" {
-			state = e.Args().Store[e.Args().Each]
+			state = Store[e.Args().Each]
 		} else {
 			return ""
 		}
@@ -151,7 +151,7 @@ func (h *Html) RenderElement(e Element) (res string) {
 				value = replaceState(e.Args(), "")
 
 				/* to store */
-			} else if e.Args().Store != nil {
+			} else if e.Args().Each != "" || e.IsReactive() {
 				var state *State
 				var val string
 				value = e.Args().Value
@@ -172,17 +172,23 @@ func (h *Html) RenderElement(e Element) (res string) {
 						case len(sliceMatch) <= 1: // value primitive
 							name = sliceMatch[0]
 							// rescato stado del store
-							state = e.Args().Store[name]
-							val = state.ToString()
+							if Store[name] != nil {
+								state = Store[name]
+								state.AddElement(e)
+								val = state.ToString()
+								// remplazar varibles con su valor en el estado
+								value = strings.ReplaceAll(value, match, val)
+							}
 						case len(sliceMatch) > 1: // value complex
 							name = sliceMatch[0]
-							state = e.Args().Store[name]
-							val = meta.Entries(state.Get())[sliceMatch[1]]
+							if Store[name] != nil {
+								state = Store[name]
+								state.AddElement(e)
+								val = meta.Entries(state.Get())[sliceMatch[1]]
+								// remplazar varibles con su valor en el estado
+								value = strings.ReplaceAll(value, match, val)
+							}
 						}
-						// añadir elemento a los estados necesarios
-						state.AddElement(e)
-						// remplazar varibles con su valor en el estado
-						value = strings.ReplaceAll(value, match, val)
 					}
 				}
 				/* element no reactive and static */
@@ -454,6 +460,27 @@ func (h *Html) SetBackgroundTitle(color string) {
 		color,
 	)
 	h.Conn().WriteMessage(1, []byte(setcolor))
+}
+
+/* zone apperence */
+// add class in array class element
+func (h *Html) AddClass(e Element, value string) {
+	addClass := ComposeEval(
+		"document.getElementById('%s').classList.add('%s')",
+		e.Args().id,
+		value,
+	)
+	h.Conn().WriteMessage(1, []byte(addClass))
+}
+
+// add class in array class element
+func (h *Html) RemoveClass(e Element, value string) {
+	removeClass := ComposeEval(
+		"document.getElementById('%s').classList.remove('%s')",
+		e.Args().id,
+		value,
+	)
+	h.Conn().WriteMessage(1, []byte(removeClass))
 }
 
 /* ASSETS */

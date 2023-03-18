@@ -32,6 +32,9 @@ type Motor interface {
 	// themes
 	SetBackgroundColor(string)
 	SetBackgroundTitle(string)
+	// apparence
+	AddClass(Element, string)
+	RemoveClass(Element, string)
 }
 
 // interface Element
@@ -42,12 +45,17 @@ type Element interface {
 	Children() []Element
 	Parent() Element
 	setParent(Element)
-	State(s *State) Element
+	State(*State) Element
 	SetTag(string)
 	Tag() string
+	GetClass() string
+	SetClass(string)
+	AddClass(string)
 	setId(string)
 	SetArgs(Args)
 	Args() Args
+	SetReactive(bool)
+	IsReactive() bool
 	GetSubType() string
 	AddEventListener(string, func(*Event))
 	SetMotorRender(Motor)
@@ -72,4 +80,7 @@ type Element interface {
 	// themes
 	SetBackgroundColor(string)
 	SetBackgroundTitle(string)
+	// apparence
+	Colapsed() Element
+	Uncolapsed() Element
 }
