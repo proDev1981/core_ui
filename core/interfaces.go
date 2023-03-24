@@ -83,4 +83,5 @@ type Element interface {
 	// apparence
 	Colapsed() Element
 	Uncolapsed() Element
+	ToggleColap() Element
 }

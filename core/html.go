@@ -87,132 +87,176 @@ func (h *Html) renderFor(e Element) (res string) {
 	return
 }
 
+// replace attribute each if is reactive
+func replaceAttribute(e Element, str string) (res string) {
+	res = str
+	if strings.Contains(str, "{{") && strings.Contains(str, "}}") {
+		name := strings.Replace(strings.Replace(str, "{{", "", 1), "}}", "", 1)
+		var value string
+		state := Store[name]
+		if state != nil {
+			state.Fill(&value)
+			state.AddElement(e)
+			res = strings.Replace(str, "{{"+name+"}}", value, 1)
+		}
+	}
+	return
+}
+
 // render nuevo
 func (h *Html) RenderMap(e Element) string {
 	header := fmt.Sprint("<", e.Tag(), argsToHTml(e.Args()), ">")
+	each := replaceAttribute(e, e.Args().Each)
+	max := replaceAttribute(e, e.Args().Max)
+	log.Println("each:", each)
 	var body string
 	var state *State
-	state = e.Args().State
-	if Store != nil {
-		if e.Args().Each != "" {
-			state = Store[e.Args().Each]
-		} else {
-			return ""
-		}
-	}
-	if state != nil {
-		state.AddElement(e)
-		// get data with reflect
-		r_data := reflect.ValueOf(state.Get())
-		if String(r_data.Kind()) == "slice" {
-			len_data := r_data.Len()
-			if len_data > e.Args().Max && e.Args().Max > 0 {
-				len_data = e.Args().Max
-			}
-			if len_data > 0 {
-				for i := 0; i < len_data; i++ {
-					Struct := r_data.Index(i)
-					// loop children
-					for _, item := range e.Children() {
-						item.setId("") //delete id in element mapper
-						item.setParent(e)
-						item.SetMotorRender(h)
-						inner := item.render()
-						for index := 0; index < Struct.NumField(); index++ {
-							name := "{{" + Struct.Type().Field(index).Name + "}}"
-							value := Struct.Field(index)
-							inner = strings.ReplaceAll(inner, name, fmt.Sprint(value))
-						}
-						body += inner
-					}
+	if each != "" {
+		state = Store[each]
+		if state != nil {
+			state.AddElement(e)
+			// get data with reflect
+			r_data := reflect.ValueOf(state.Get())
+			if String(r_data.Kind()) == "slice" {
+				len_data := r_data.Len()
+				if len_data > Int(max) && Int(max) > 0 {
+					len_data = Int(max)
 				}
+				if len_data > 0 {
+					for i := 0; i < len_data; i++ {
+						Struct := r_data.Index(i)
+						// loop children
+						for _, item := range e.Children() {
+							item.setId("") //delete id in element mapper
+							item.setParent(e)
+							item.SetMotorRender(h)
+							inner := item.render()
+							// replace all values states
+							for index := 0; index < Struct.NumField(); index++ {
+								name := "{{" + Struct.Type().Field(index).Name + "}}"
+								value := Struct.Field(index)
+								inner = strings.ReplaceAll(inner, name, fmt.Sprint(value))
+							}
+							body += inner
+						}
+					}
 
+				}
 			}
 		}
-
 	}
 
 	foother := fmt.Sprint("</", e.Tag(), ">")
 	return header + body + foother
 }
 
-// render element for html
+// new render Element
 func (h *Html) RenderElement(e Element) (res string) {
-	if h.saveKey(e) {
+	// compruebo si el elemento existe
+	conditional := func() bool { return true }
+	if e.Args().Case != nil {
+		conditional = e.Args().Case
+	}
+	log.Println("case: ", conditional(), "tag: ", e.Tag())
+	if h.saveKey(e) && conditional() {
+		// parseo los estilos
 		h.parseStyle(e)
-		if e.GetSubType() == "list" {
+		// compruebo si es un elemento list
+		switch e.GetSubType() {
+		case "list":
 			res = h.RenderMap(e)
-		} else {
-			var value string
-			/* to state */
-			if e.Args().State != nil {
-				state := e.Args().State
-				state.AddElement(e)
-				value = replaceState(e.Args(), "")
-
-				/* to store */
-			} else if e.Args().Each != "" || e.IsReactive() {
-				var state *State
-				var val string
-				value = e.Args().Value
-				// compilo la expresion regular
-				r, err := regexp.Compile(`\{\{[\w\d\.]+\}\}`)
-				if err != nil {
-					fmt.Println("Error:", err.Error())
-				} else {
-					// buscar variables en template
-					matches := r.FindAllString(e.Args().Value, -1)
-					/* loop matches */
-					for _, match := range matches {
-						// limpio la varible del template
-						name := strings.ReplaceAll(strings.ReplaceAll(match, "{", ""), "}", "")
-						// compruebo si esta pidiendo un objeto o un valor primitivo
-						sliceMatch := TrimSlice(strings.Split(name, "."), "")
-						switch {
-						case len(sliceMatch) <= 1: // value primitive
-							name = sliceMatch[0]
-							// rescato stado del store
-							if Store[name] != nil {
-								state = Store[name]
-								state.AddElement(e)
-								val = state.ToString()
-								// remplazar varibles con su valor en el estado
-								value = strings.ReplaceAll(value, match, val)
-							}
-						case len(sliceMatch) > 1: // value complex
-							name = sliceMatch[0]
-							if Store[name] != nil {
-								state = Store[name]
-								state.AddElement(e)
-								val = meta.Entries(state.Get())[sliceMatch[1]]
-								// remplazar varibles con su valor en el estado
-								value = strings.ReplaceAll(value, match, val)
-							}
-						}
-					}
-				}
-				/* element no reactive and static */
-			} else {
-				value = e.Args().Value
+		default:
+			// convierto elemento en string
+			res = toString(h, e)
+			// compruebo que el elemento es reactivo o no es un list
+			if e.IsReactive() {
+				// remplazo valor del stato en el elemento
+				res = replaceAllSates(e, res)
 			}
-			res = fmt.Sprint("<", e.Tag(), argsToHTml(e.Args()), ">", value)
-			// render childrens
-			for _, item := range e.Children() {
-				if e.Args().id == "" {
-					item.setId("") // delete id if parent is mapper
-				}
-				item.setParent(e)
-				item.SetMotorRender(h)
-				res += item.render()
-				if !eventsIsEmpty(item.Args().Events) {
-					h.AddEventListener(item.Args().id, item.Args().Events)
-				}
-			}
-			res += fmt.Sprint("</", e.Tag(), ">")
 		}
 	}
 	return
 }
+
+/* ASSETS */
+
+// replace attribute if is reactive
+func replaceMax(e Element) (res string) {
+	str := e.Args().Each
+	res = str
+	if strings.Contains(str, "{{") && strings.Contains(str, "}}") {
+		name := strings.Replace(strings.Replace(str, "{{", "", 1), "}}", "", 1)
+		var value string
+		state := Store[name]
+		if state != nil {
+			state.Fill(&value)
+			state.AddElement(e)
+			res = strings.Replace(str, "{{"+name+"}}", value, 1)
+		}
+	}
+	return
+}
+
+// paso de struct element o string
+func toString(h *Html, e Element) (res string) {
+	attributes := argsToHTml(e.Args())
+	inner := e.Args().Value
+	// render childrens
+	for _, item := range e.Children() {
+		item.setParent(e)
+		item.SetMotorRender(h)
+		inner += item.render()
+		if !eventsIsEmpty(item.Args().Events) {
+			h.AddEventListener(item.Args().id, item.Args().Events)
+		}
+	}
+	res = fmt.Sprintf("<%s %s>%s</%s>", e.Tag(), attributes, inner, e.Tag())
+	return
+}
+
+// replace states in htmls string
+func replaceAllSates(e Element, res string) string {
+	// compilo la expresion regular
+	r, err := regexp.Compile(`\{\{[\w\d\.]+\}\}`)
+	switch err {
+	case nil:
+		var state *State
+		var val string
+		matches := r.FindAllString(res, -1)
+		for _, match := range matches {
+			// limpio la varible del template
+			name := strings.ReplaceAll(strings.ReplaceAll(match, "{", ""), "}", "")
+			// compruebo si esta pidiendo un objeto o un valor primitivo
+			sliceMatch := TrimSlice(strings.Split(name, "."), "")
+			switch {
+			case len(sliceMatch) <= 1: // value primitive
+				name = sliceMatch[0]
+				// rescato stado del store
+				if Store[name] != nil {
+					state = Store[name]
+					state.AddElement(e)
+					val = state.ToString()
+					// remplazar varibles con su valor en el estado
+					res = strings.ReplaceAll(res, match, val)
+				}
+			case len(sliceMatch) > 1: // value complex
+				name = sliceMatch[0]
+				if Store[name] != nil {
+					state = Store[name]
+					state.AddElement(e)
+					val = meta.Entries(state.Get())[sliceMatch[1]]
+					// remplazar varibles con su valor en el estado
+					res = strings.ReplaceAll(res, match, val)
+				}
+			}
+		}
+	default:
+		fmt.Println("Error:", err.Error())
+	}
+	return res
+}
+
+/* END ASSETS */
 
 // render element for html
 func (h *Html) RenderPage(p *page) (res string) {
@@ -491,7 +535,6 @@ func (h *Html) saveKey(e Element) bool {
 	if key != "" {
 		if h.elements[key] != nil {
 			log.Printf("Warning: Element <<%s>> duplicate!!\n", key)
-			return false
 		}
 		h.elements[key] = e
 	}

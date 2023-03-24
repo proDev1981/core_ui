@@ -21,10 +21,11 @@ type Args struct {
 	Link        *string
 	Width       string
 	Height      string
-	Max         int
-	Min         int
+	Max         string
+	Min         string
 	Charset     string
 	Content     string
 	Placeholder string
 	reactive    bool
+	Case        func() bool
 }

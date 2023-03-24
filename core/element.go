@@ -21,7 +21,8 @@ type Ele struct {
 
 // contructor element
 func NewElement(sub string, tag string, args Args, childs ...Element) *Ele {
-	if strings.Contains(args.Value, "{{") && strings.Contains(args.Value, "}}") {
+	template := argsToHTml(args)
+	if strings.Contains(template, "{{") && strings.Contains(template, "}}") {
 		args.reactive = true
 	}
 	e := &Ele{subtype: sub, tag: tag, args: args}
@@ -255,5 +256,13 @@ func (e *Ele) Colapsed() Element {
 }
 func (e *Ele) Uncolapsed() Element {
 	e.MotorRender().RemoveClass(e, "colapsed")
+	return e
+}
+func (e *Ele) ToggleColap() Element {
+	if strings.Contains(e.GetClass(), "colapsed") {
+		e.Uncolapsed()
+	} else {
+		e.Colapsed()
+	}
 	return e
 }
